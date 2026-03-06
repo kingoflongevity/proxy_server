@@ -33,10 +33,10 @@ export const useSubscriptionStore = defineStore('subscription', () => {
     loading.value = true
     error.value = null
     try {
-      subscriptions.value = await subscriptionApi.getSubscriptions()
+      subscriptions.value = await subscriptionApi.getSubscriptions() || []
     } catch (e: any) {
       error.value = e.message || '获取订阅列表失败'
-      throw e
+      subscriptions.value = []
     } finally {
       loading.value = false
     }
