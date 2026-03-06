@@ -27,6 +27,7 @@ onMounted(async () => {
  * 打开添加对话框
  */
 function openAddDialog() {
+  console.log('打开添加对话框')
   editingSubscription.value = null
   formData.value = {
     name: '',
@@ -36,6 +37,7 @@ function openAddDialog() {
     updateInterval: 24,
   }
   showAddDialog.value = true
+  console.log('showAddDialog:', showAddDialog.value)
 }
 
 /**
