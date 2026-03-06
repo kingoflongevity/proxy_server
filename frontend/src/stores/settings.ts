@@ -29,6 +29,12 @@ export const useSettingsStore = defineStore('settings', () => {
     logLevel: 'info',
     connectionStats: true,
     proxyMode: 'rule',
+    // 高级设置默认值
+    dnsServers: ['https://dns.google/dns-query', '1.1.1.1', '8.8.8.8'],
+    enableMux: false,
+    enableIpv6: false,
+    domainStrategy: 'IPIfNonMatch',
+    tunMode: false,
   })
 
   const connectionStatus = ref<ConnectionStatus>({
@@ -95,6 +101,12 @@ export const useSettingsStore = defineStore('settings', () => {
         logLevel: result.logLevel || 'info',
         connectionStats: result.connectionStats ?? true,
         proxyMode: result.proxyMode || 'rule',
+        // 高级设置
+        dnsServers: result.dnsServers || ['https://dns.google/dns-query', '1.1.1.1', '8.8.8.8'],
+        enableMux: result.enableMux ?? false,
+        enableIpv6: result.enableIpv6 ?? false,
+        domainStrategy: result.domainStrategy || 'IPIfNonMatch',
+        tunMode: result.tunMode ?? false,
       }
       // 应用主题和语言
       applyTheme(settings.value.theme)

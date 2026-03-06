@@ -268,6 +268,94 @@ function formatMemory(bytes: number): string {
         </div>
       </div>
 
+      <!-- 高级网络设置 -->
+      <h3 class="section-title">高级网络设置</h3>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <h4>启用 Mux</h4>
+          <p>多路复用，提升并发性能</p>
+        </div>
+        <div class="setting-control">
+          <label class="switch">
+            <input
+              type="checkbox"
+              :checked="settingsStore.settings.enableMux"
+              @change="updateSetting('enableMux', ($event.target as HTMLInputElement).checked)"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <h4>IPv6 支持</h4>
+          <p>启用 IPv6 代理</p>
+        </div>
+        <div class="setting-control">
+          <label class="switch">
+            <input
+              type="checkbox"
+              :checked="settingsStore.settings.enableIpv6"
+              @change="updateSetting('enableIpv6', ($event.target as HTMLInputElement).checked)"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <h4>TUN 模式</h4>
+          <p>启用 TUN 虚拟网卡（需要管理员权限）</p>
+        </div>
+        <div class="setting-control">
+          <label class="switch">
+            <input
+              type="checkbox"
+              :checked="settingsStore.settings.tunMode"
+              @change="updateSetting('tunMode', ($event.target as HTMLInputElement).checked)"
+            />
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <h4>域名策略</h4>
+          <p>DNS 解析策略</p>
+        </div>
+        <div class="setting-control">
+          <select
+            :value="settingsStore.settings.domainStrategy"
+            @change="updateSetting('domainStrategy', ($event.target as HTMLSelectElement).value)"
+          >
+            <option value="IPIfNonMatch">IPIfNonMatch</option>
+            <option value="IPOnDemand">IPOnDemand</option>
+            <option value="always">always</option>
+            <option value="false">false</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <h4>DNS 服务器</h4>
+          <p>自定义 DNS 服务器（每行一个）</p>
+        </div>
+        <div class="setting-control">
+          <textarea
+            class="dns-input"
+            :value="settingsStore.settings.dnsServers?.join('\n')"
+            @blur="(e) => updateSetting('dnsServers', ($event.target as HTMLTextAreaElement).value.split('\n').filter(s => s.trim()))"
+            placeholder="https://dns.google/dns-query&#10;1.1.1.1&#10;8.8.8.8"
+            rows="3"
+          ></textarea>
+        </div>
+      </div>
+
       <div class="setting-item">
         <div class="setting-label">
           <h4>静默启动</h4>

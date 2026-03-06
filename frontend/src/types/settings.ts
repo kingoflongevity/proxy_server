@@ -15,6 +15,12 @@ export interface SystemSettings {
   logLevel: LogLevel
   connectionStats: boolean
   proxyMode: ProxyMode
+  // 高级设置
+  dnsServers: string[]
+  enableMux: boolean
+  enableIpv6: boolean
+  domainStrategy: 'IPIfNonMatch' | 'IPOnDemand' | 'always' | 'false'
+  tunMode: boolean
 }
 
 export type Theme = 'dark' | 'light' | 'auto'
@@ -71,4 +77,10 @@ export interface UpdateSettingsRequest {
   logLevel?: LogLevel
   connectionStats?: boolean
   proxyMode?: ProxyMode
+  // 高级设置
+  dnsServers?: string[]
+  enableMux?: boolean
+  enableIpv6?: boolean
+  domainStrategy?: 'IPIfNonMatch' | 'IPOnDemand' | 'always' | 'false'
+  tunMode?: boolean
 }
