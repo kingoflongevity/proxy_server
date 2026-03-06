@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSettingsStore, useNodeStore } from '@/stores'
 
@@ -10,6 +10,10 @@ const nodeStore = useNodeStore()
 
 const collapsed = ref(false)
 const routeKey = ref(0)
+
+onMounted(async () => {
+  await settingsStore.fetchProxyMode()
+})
 
 /**
  * 菜单项

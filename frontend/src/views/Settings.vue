@@ -13,6 +13,7 @@ const activeTab = ref<'general' | 'network' | 'advanced'>('general')
 onMounted(async () => {
   await settingsStore.fetchSettings()
   await settingsStore.fetchSystemInfo()
+  await settingsStore.fetchProxyMode()
 })
 
 /**
