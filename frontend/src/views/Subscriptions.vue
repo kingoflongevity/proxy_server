@@ -137,7 +137,7 @@ function getStatusColor(status: string): string {
     <!-- 头部操作栏 -->
     <div class="header-actions">
       <h2 class="page-title">订阅管理</h2>
-      <button class="btn btn-primary" @click="openAddDialog">
+      <button type="button" class="btn btn-primary" @click="() => openAddDialog()">
         <svg viewBox="0 0 24 24" fill="none">
           <path
             d="M12 5V19M5 12H19"
@@ -268,7 +268,7 @@ function getStatusColor(status: string): string {
           />
         </svg>
         <p>暂无订阅</p>
-        <button class="btn btn-primary" @click="openAddDialog">添加第一个订阅</button>
+        <button type="button" class="btn btn-primary" @click="() => openAddDialog()">添加第一个订阅</button>
       </div>
     </div>
 
