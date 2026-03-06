@@ -5,6 +5,14 @@ import type { ProxyNode, NodeFilter, NodeSort, NodeTestResult } from '@/types'
  * 节点管理API
  */
 
+interface PageResponse {
+  list: ProxyNode[]
+  total: number
+  page: number
+  page_size: number
+  total_pages: number
+}
+
 /**
  * 获取节点列表
  */
@@ -17,7 +25,10 @@ export function getNodes(params?: {
   items: ProxyNode[]
   total: number
 }> {
-  return request.get('/nodes', { params })
+  return request.get<PageResponse>('/nodes', { params }).then((res) => ({
+    items: res.list || [],
+    total: res.total || 0,
+  }))
 }
 
 /**
