@@ -45,6 +45,12 @@ const menuItems = [
     title: '系统设置',
     icon: 'settings',
   },
+  {
+    path: '/logs',
+    name: 'Logs',
+    title: '流量日志',
+    icon: 'logs',
+  },
 ]
 
 /**

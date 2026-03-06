@@ -55,6 +55,15 @@ const routes: RouteRecordRaw[] = [
           icon: 'settings',
         },
       },
+      {
+        path: 'logs',
+        name: 'Logs',
+        component: () => import('@/views/Logs.vue'),
+        meta: {
+          title: '流量日志',
+          icon: 'logs',
+        },
+      },
     ],
   },
   {

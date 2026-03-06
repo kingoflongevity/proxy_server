@@ -117,6 +117,7 @@ func (s *systemService) UpdateSettings(req *model.UpdateSettingsRequest) (*model
 	if req.BindAddress != "" {
 		settings.BindAddress = req.BindAddress
 	}
+	// 处理端口（0表示不修改）
 	if req.Port > 0 {
 		settings.Port = req.Port
 	}
@@ -126,10 +127,14 @@ func (s *systemService) UpdateSettings(req *model.UpdateSettingsRequest) (*model
 	if req.HttpPort > 0 {
 		settings.HttpPort = req.HttpPort
 	}
+	if req.MixedPort > 0 {
+		settings.MixedPort = req.MixedPort
+	}
 	if req.LogLevel != "" {
 		settings.LogLevel = req.LogLevel
 	}
 	settings.AutoStart = req.AutoStart
+	settings.SilentStart = req.SilentStart
 	settings.AllowLan = req.AllowLan
 	
 	if err := s.systemRepo.SaveSettings(settings); err != nil {
