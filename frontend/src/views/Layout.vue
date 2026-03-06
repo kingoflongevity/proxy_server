@@ -62,7 +62,12 @@ function toggleCollapse() {
  * 导航到指定路由
  */
 function navigateTo(path: string) {
-  router.push(path)
+  if (route.path !== path) {
+    router.push(path).catch(() => {
+      // 如果push失败，使用window.location
+      window.location.href = path
+    })
+  }
 }
 
 /**
