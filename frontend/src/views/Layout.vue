@@ -9,6 +9,7 @@ const settingsStore = useSettingsStore()
 const nodeStore = useNodeStore()
 
 const collapsed = ref(false)
+const routeKey = ref(0)
 
 /**
  * 菜单项
@@ -63,9 +64,8 @@ function toggleCollapse() {
  */
 function navigateTo(path: string) {
   if (route.path !== path) {
-    router.push(path).catch(() => {
-      // 如果push失败，使用window.location
-      window.location.href = path
+    router.push(path).then(() => {
+      routeKey.value++
     })
   }
 }
@@ -247,7 +247,7 @@ function formatSpeed(bytesPerSecond: number): string {
 
       <!-- 内容区 -->
       <main class="content">
-        <router-view :key="route.fullPath" />
+        <router-view :key="route.fullPath + routeKey" />
       </main>
     </div>
   </div>
