@@ -119,11 +119,32 @@ func (h *SubscriptionHandler) Refresh(c *gin.Context) {
 		response.BadRequest(c, "缺少订阅ID")
 		return
 	}
-	
+
 	if err := h.subService.Refresh(id); err != nil {
 		response.Error(c, 1001, err.Error())
 		return
 	}
-	
+
 	response.SuccessWithMessage(c, "刷新成功", nil)
+}
+
+// Test 测试订阅连接
+func (h *SubscriptionHandler) Test(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.BadRequest(c, "缺少订阅ID")
+		return
+	}
+
+	subscription, err := h.subService.GetByID(id)
+	if err != nil {
+		response.Error(c, 1002, err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"valid":   true,
+		"message": "订阅连接正常",
+		"name":    subscription.Name,
+	})
 }

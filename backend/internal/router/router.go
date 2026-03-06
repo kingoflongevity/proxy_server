@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SetupRouter 设置路由
 func SetupRouter(
 	subHandler *handler.SubscriptionHandler,
 	nodeHandler *handler.NodeHandler,
@@ -17,12 +16,10 @@ func SetupRouter(
 ) *gin.Engine {
 	r := gin.New()
 	
-	// 使用中间件
 	r.Use(middleware.Logger())
 	r.Use(middleware.Recovery())
 	r.Use(cors.Default())
 	
-	// 健康检查
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
@@ -30,10 +27,8 @@ func SetupRouter(
 		})
 	})
 	
-	// API路由组
 	api := r.Group("/api")
 	{
-		// 订阅管理
 		subscriptions := api.Group("/subscriptions")
 		{
 			subscriptions.POST("", subHandler.Create)
@@ -42,12 +37,14 @@ func SetupRouter(
 			subscriptions.PUT("/:id", subHandler.Update)
 			subscriptions.DELETE("/:id", subHandler.Delete)
 			subscriptions.POST("/:id/refresh", subHandler.Refresh)
+			subscriptions.POST("/:id/update", subHandler.Refresh)
+			subscriptions.POST("/:id/test", subHandler.Test)
 		}
 		
-		// 节点管理
 		nodes := api.Group("/nodes")
 		{
 			nodes.GET("", nodeHandler.GetList)
+			nodes.GET("/current", nodeHandler.GetCurrent)
 			nodes.GET("/:id", nodeHandler.GetByID)
 			nodes.PUT("/:id", nodeHandler.Update)
 			nodes.POST("/:id/test", nodeHandler.Test)
@@ -55,7 +52,6 @@ func SetupRouter(
 			nodes.POST("/disconnect", nodeHandler.Disconnect)
 		}
 		
-		// 规则管理
 		rules := api.Group("/rules")
 		{
 			rules.GET("", ruleHandler.GetAll)
@@ -65,10 +61,18 @@ func SetupRouter(
 			rules.DELETE("/:id", ruleHandler.Delete)
 		}
 		
-		// 系统状态
 		api.GET("/status", systemHandler.GetStatus)
 		api.GET("/traffic", systemHandler.GetTraffic)
 		api.GET("/logs", systemHandler.GetLogs)
+		
+		api.GET("/settings", systemHandler.GetSettings)
+		api.PUT("/settings", systemHandler.UpdateSettings)
+		api.GET("/connection/status", systemHandler.GetConnectionStatus)
+		api.GET("/system/info", systemHandler.GetSystemInfo)
+		api.POST("/system/restart", systemHandler.RestartService)
+		api.GET("/config/export", systemHandler.ExportConfig)
+		api.POST("/config/import", systemHandler.ImportConfig)
+		api.POST("/system/clear-cache", systemHandler.ClearCache)
 	}
 	
 	return r

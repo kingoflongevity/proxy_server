@@ -19,6 +19,8 @@ type SystemRepository interface {
 	GetTraffic() (*model.TrafficStats, error)
 	SaveLog(log *model.LogEntry) error
 	GetLogs(query *model.LogQuery) ([]*model.LogEntry, error)
+	GetSettings() (*model.SystemSettings, error)
+	SaveSettings(settings *model.SystemSettings) error
 }
 
 // systemRepository 系统仓库实现
@@ -222,4 +224,47 @@ func containsHelper(str, substr string) bool {
 		}
 	}
 	return false
+}
+
+func (r *systemRepository) GetSettings() (*model.SystemSettings, error) {
+	dataFile := filepath.Join(r.dataDir, "settings.json")
+	
+	data, err := os.ReadFile(dataFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return &model.SystemSettings{
+				Theme:       "dark",
+				Language:    "zh-CN",
+				AutoStart:   false,
+				SilentStart: false,
+				AllowLan:    false,
+				BindAddress: "127.0.0.1",
+				Port:        7890,
+				SocksPort:   7891,
+				HttpPort:    7892,
+				MixedPort:   7893,
+				LogLevel:    "info",
+				ProxyMode:   "rule",
+			}, nil
+		}
+		return nil, err
+	}
+	
+	var settings model.SystemSettings
+	if err := json.Unmarshal(data, &settings); err != nil {
+		return nil, err
+	}
+	
+	return &settings, nil
+}
+
+func (r *systemRepository) SaveSettings(settings *model.SystemSettings) error {
+	dataFile := filepath.Join(r.dataDir, "settings.json")
+	
+	data, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return err
+	}
+	
+	return os.WriteFile(dataFile, data, 0644)
 }

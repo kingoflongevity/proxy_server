@@ -119,6 +119,17 @@ func (h *NodeHandler) Disconnect(c *gin.Context) {
 		response.Error(c, 2003, err.Error())
 		return
 	}
-	
+
 	response.SuccessWithMessage(c, "断开成功", nil)
+}
+
+// GetCurrent 获取当前连接的节点
+func (h *NodeHandler) GetCurrent(c *gin.Context) {
+	node := h.nodeService.GetCurrentNode()
+	if node == nil {
+		response.Success(c, nil)
+		return
+	}
+
+	response.Success(c, node)
 }
