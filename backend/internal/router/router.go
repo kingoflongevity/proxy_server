@@ -96,6 +96,7 @@ func SetupRouter(
 		api.PUT("/settings", systemHandler.UpdateSettings)
 		api.GET("/connection/status", systemHandler.GetConnectionStatus)
 		api.GET("/system/info", systemHandler.GetSystemInfo)
+		api.GET("/proxy/mode", systemHandler.GetProxyMode)
 		api.POST("/system/restart", systemHandler.RestartService)
 		api.GET("/config/export", systemHandler.ExportConfig)
 		api.POST("/config/import", systemHandler.ImportConfig)

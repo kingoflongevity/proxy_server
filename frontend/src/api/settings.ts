@@ -39,6 +39,13 @@ export function getSystemInfo(): Promise<SystemInfo> {
 }
 
 /**
+ * 获取代理模式
+ */
+export function getProxyMode(): Promise<{ proxyMode: string }> {
+  return request.get('/proxy/mode')
+}
+
+/**
  * 重启服务
  */
 export function restartService(): Promise<void> {

@@ -21,10 +21,10 @@ type XrayConfig struct {
 
 // LogConfig 日志配置
 type LogConfig struct {
-	Loglevel  string `json:"loglevel"`  // debug, info, warning, error, none
-	Access    string `json:"access"`    // 访问日志路径
-	Error     string `json:"error"`     // 错误日志路径
-	DNSLog    bool   `json:"dnsLog"`    // DNS日志
+	Loglevel string `json:"loglevel"` // debug, info, warning, error, none
+	Access   string `json:"access"`   // 访问日志路径
+	Error    string `json:"error"`    // 错误日志路径
+	DNSLog   bool   `json:"dnsLog"`   // DNS日志
 }
 
 // APIConfig API配置
@@ -46,11 +46,11 @@ type InboundConfig struct {
 
 // SniffingConfig 嗅探配置
 type SniffingConfig struct {
-	Enabled      bool     `json:"enabled"`
-	DestOverride []string `json:"destOverride"`
-	MetadataOnly bool     `json:"metadataOnly,omitempty"`
-	RoutesOnly   bool     `json:"routesOnly,omitempty"`
-	Domains      []string `json:"domains,omitempty"`
+	Enabled        bool     `json:"enabled"`
+	DestOverride   []string `json:"destOverride"`
+	MetadataOnly   bool     `json:"metadataOnly,omitempty"`
+	RoutesOnly     bool     `json:"routesOnly,omitempty"`
+	Domains        []string `json:"domains,omitempty"`
 	ExcludeDomains []string `json:"excludeDomains,omitempty"`
 }
 
@@ -77,7 +77,7 @@ type MuxConfig struct {
 
 // RoutingConfig 路由配置
 type RoutingConfig struct {
-	DomainStrategy string      `json:"domainStrategy"`
+	DomainStrategy string       `json:"domainStrategy"`
 	Rules          []RuleConfig `json:"rules"`
 }
 
@@ -131,15 +131,16 @@ type DNSConfig struct {
 
 // DNSServer DNS服务器
 type DNSServer struct {
-	Address    string   `json:"address"`
-	Port       int      `json:"port,omitempty"`
-	Domains    []string `json:"domains,omitempty"`
-	SkipFallback bool   `json:"skipFallback,omitempty"`
+	Address      string   `json:"address"`
+	Port         int      `json:"port,omitempty"`
+	Domains      []string `json:"domains,omitempty"`
+	SkipFallback bool     `json:"skipFallback,omitempty"`
 }
 
 // ConfigGenerator Xray配置生成器
 type ConfigGenerator struct {
 	localPort int
+	proxyMode string
 }
 
 // NewConfigGenerator 创建配置生成器
@@ -149,12 +150,19 @@ func NewConfigGenerator(localPort int) *ConfigGenerator {
 	}
 	return &ConfigGenerator{
 		localPort: localPort,
+		proxyMode: "rule",
 	}
+}
+
+// SetProxyMode 设置代理模式
+func (g *ConfigGenerator) SetProxyMode(mode string) {
+	g.proxyMode = mode
 }
 
 // GenerateConfig 为节点生成Xray配置
 // 参数：
 //   - node: 节点信息
+//
 // 返回：
 //   - *XrayConfig: 生成的配置
 //   - error: 错误信息
@@ -258,8 +266,8 @@ func (g *ConfigGenerator) generateVLESSSettings(node *model.Node) json.RawMessag
 			"port":    node.Port,
 			"users": []map[string]interface{}{
 				{
-					"id":    node.UUID,
-					"flow":  node.Flow,
+					"id":         node.UUID,
+					"flow":       node.Flow,
 					"encryption": "none",
 				},
 			},
@@ -439,13 +447,13 @@ func (g *ConfigGenerator) generateKCPSettings(node *model.Node) map[string]inter
 		"header": map[string]interface{}{
 			"type": "none",
 		},
-		"mtu":       1350,
-		"tti":       20,
-		"uplinkCapacity": 5,
+		"mtu":              1350,
+		"tti":              20,
+		"uplinkCapacity":   5,
 		"downlinkCapacity": 20,
-		"congestion": false,
-		"readBufferSize": 1,
-		"writeBufferSize": 1,
+		"congestion":       false,
+		"readBufferSize":   1,
+		"writeBufferSize":  1,
 	}
 
 	return kcpSettings
@@ -455,7 +463,7 @@ func (g *ConfigGenerator) generateKCPSettings(node *model.Node) map[string]inter
 // 移除allowInsecure，使用pinnedPeerCertSha256和verifyPeerCertByName
 func (g *ConfigGenerator) generateTLSSettings(node *model.Node) map[string]interface{} {
 	tlsSettings := map[string]interface{}{
-		"serverName": node.SNI,
+		"serverName":    node.SNI,
 		"allowInsecure": false, // v26.2.6强制为false
 	}
 
@@ -487,10 +495,10 @@ func (g *ConfigGenerator) generateTLSSettings(node *model.Node) map[string]inter
 // generateRealitySettings 生成REALITY配置
 func (g *ConfigGenerator) generateRealitySettings(node *model.Node) map[string]interface{} {
 	realitySettings := map[string]interface{}{
-		"serverName":   node.SNI,
-		"publicKey":    node.RealityPublicKey,
-		"shortId":      node.RealityShortID,
-		"fingerprint":  node.RealityFingerprint,
+		"serverName":  node.SNI,
+		"publicKey":   node.RealityPublicKey,
+		"shortId":     node.RealityShortID,
+		"fingerprint": node.RealityFingerprint,
 	}
 
 	// SpiderX参数

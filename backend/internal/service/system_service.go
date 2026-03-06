@@ -23,6 +23,12 @@ type SystemService interface {
 	ExportConfig() (string, error)
 	ImportConfig(config string) error
 	ClearCache() error
+	GetProxyMode() string
+}
+
+// 获取当前代理模式
+func GetProxyMode() string {
+	return currentProxyMode
 }
 
 // systemService 系统服务实现
@@ -32,8 +38,11 @@ type systemService struct {
 	version    string
 }
 
+var currentProxyMode = "rule"
+
 // NewSystemService 创建系统服务
 func NewSystemService(systemRepo repository.SystemRepository) SystemService {
+	currentProxyMode = "rule"
 	return &systemService{
 		systemRepo: systemRepo,
 		startTime:  time.Now(),
@@ -113,6 +122,8 @@ func (s *systemService) UpdateSettings(req *model.UpdateSettingsRequest) (*model
 	}
 	if req.ProxyMode != "" {
 		settings.ProxyMode = req.ProxyMode
+		currentProxyMode = req.ProxyMode
+		logger.Info("代理模式已切换为: %s", req.ProxyMode)
 	}
 	if req.BindAddress != "" {
 		settings.BindAddress = req.BindAddress
@@ -173,6 +184,11 @@ func (s *systemService) GetSystemInfo() (*model.SystemInfo, error) {
 		GoroutineNum: runtime.NumGoroutine(),
 		Uptime:       int64(time.Since(s.startTime).Seconds()),
 	}, nil
+}
+
+// GetProxyMode 获取代理模式
+func (s *systemService) GetProxyMode() string {
+	return currentProxyMode
 }
 
 // RestartService 重启服务

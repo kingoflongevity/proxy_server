@@ -165,6 +165,21 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   /**
+   * 获取当前代理模式（实时）
+   */
+  async function fetchProxyMode() {
+    try {
+      const result = await settingsApi.getProxyMode()
+      if (result && result.proxyMode) {
+        settings.value.proxyMode = result.proxyMode as any
+      }
+      return result
+    } catch (e: any) {
+      console.error('获取代理模式失败:', e)
+    }
+  }
+
+  /**
    * 切换主题
    */
   async function toggleTheme(theme: Theme) {
@@ -296,6 +311,7 @@ export const useSettingsStore = defineStore('settings', () => {
     updateSettings,
     fetchConnectionStatus,
     fetchSystemInfo,
+    fetchProxyMode,
     toggleTheme,
     toggleLanguage,
     toggleProxyMode,

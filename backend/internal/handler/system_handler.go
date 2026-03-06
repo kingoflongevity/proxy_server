@@ -109,6 +109,14 @@ func (h *SystemHandler) GetSystemInfo(c *gin.Context) {
 	response.Success(c, info)
 }
 
+// GetProxyMode 获取当前代理模式
+func (h *SystemHandler) GetProxyMode(c *gin.Context) {
+	mode := service.GetProxyMode()
+	response.Success(c, map[string]string{
+		"proxyMode": mode,
+	})
+}
+
 // RestartService 重启服务
 func (h *SystemHandler) RestartService(c *gin.Context) {
 	if err := h.systemService.RestartService(); err != nil {
