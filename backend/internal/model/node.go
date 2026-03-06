@@ -13,6 +13,46 @@ const (
 	NodeTypeSSR        NodeType = "ssr"
 )
 
+// NetworkType 传输层网络类型
+type NetworkType string
+
+const (
+	NetworkTCP    NetworkType = "tcp"
+	NetworkWS     NetworkType = "ws"
+	NetworkGRPC   NetworkType = "grpc"
+	NetworkHTTP   NetworkType = "http"
+	NetworkHTTP2  NetworkType = "h2"
+	NetworkXHTTP  NetworkType = "xhttp" // Xray-core v26.2.6新增
+	NetworkKCP    NetworkType = "mkcp"
+)
+
+// SecurityType 安全类型
+type SecurityType string
+
+const (
+	SecurityNone    SecurityType = "none"
+	SecurityTLS     SecurityType = "tls"
+	SecurityReality SecurityType = "reality"
+)
+
+// FinalmaskConfig Finalmask配置（Xray-core v26.2.6新增）
+type FinalmaskConfig struct {
+	XICMP  bool `json:"xicmp,omitempty"`  // XICMP伪装
+	XDNS   bool `json:"xdns,omitempty"`   // XDNS伪装
+	Header map[string]bool `json:"header,omitempty"` // header-* 伪装
+	MKCP   map[string]bool `json:"mkcp,omitempty"`   // mkcp-* 伪装
+}
+
+// XHTTPConfig XHTTP传输配置（Xray-core v26.2.6新增）
+type XHTTPConfig struct {
+	EnableCDNBypass bool   `json:"enable_cdn_bypass,omitempty"` // CDN绕过选项
+	Mode           string `json:"mode,omitempty"`             // stream或packet
+	DownloadSettings *struct {
+		Address string `json:"address,omitempty"`
+		Port    int    `json:"port,omitempty"`
+	} `json:"download_settings,omitempty"`
+}
+
 // Node 节点模型
 type Node struct {
 	ID             string    `json:"id"`
@@ -24,7 +64,7 @@ type Node struct {
 	UUID           string    `json:"uuid,omitempty"`
 	Password       string    `json:"password,omitempty"`
 	Method         string    `json:"method,omitempty"` // Shadowsocks加密方式
-	Network        string    `json:"network,omitempty"` // tcp, ws, grpc, http
+	Network        string    `json:"network,omitempty"` // tcp, ws, grpc, http, xhttp
 	Security       string    `json:"security,omitempty"` // tls, reality, none
 	SNI            string    `json:"sni,omitempty"`
 	Host           string    `json:"host,omitempty"`
@@ -35,14 +75,26 @@ type Node struct {
 	RealityPublicKey string `json:"reality_public_key,omitempty"`
 	RealityShortID   string `json:"reality_short_id,omitempty"`
 	RealityFingerprint string `json:"reality_fingerprint,omitempty"`
+	RealitySpiderX   string `json:"reality_spider_x,omitempty"` // SpiderX参数
 	
-	// TLS配置 (Xray-core v26+)
+	// TLS配置 (Xray-core v26.2.6重要变更)
 	PinnedPeerCertSha256 string `json:"pinned_peer_cert_sha256,omitempty"` // 替代allowInsecure
+	VerifyPeerCertByName string `json:"verify_peer_cert_by_name,omitempty"` // 证书名称验证
+	Fingerprint         string `json:"fingerprint,omitempty"` // TLS指纹（chrome, firefox等）
+	
+	// XHTTP配置 (Xray-core v26.2.6新增)
+	XHTTPConfig *XHTTPConfig `json:"xhttp_config,omitempty"`
+	
+	// Finalmask配置 (Xray-core v26.2.6新增)
+	Finalmask *FinalmaskConfig `json:"finalmask,omitempty"`
 	
 	// 其他配置
 	Flow          string   `json:"flow,omitempty"` // VLESS flow控制
 	ServiceName   string   `json:"service_name,omitempty"` // gRPC service name
 	Headers       map[string]string `json:"headers,omitempty"`
+	
+	// VMess特殊配置
+	AlterID       int    `json:"alter_id,omitempty"` // VMess AlterID（v26.2.6建议设为0）
 	
 	// 性能指标
 	Latency       int       `json:"latency"` // 延迟（毫秒）
