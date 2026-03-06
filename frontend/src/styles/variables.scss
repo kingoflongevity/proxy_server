@@ -1,40 +1,109 @@
-/**
- * 全局样式变量 - 深色主题
- */
+// 主题颜色配置
+$theme-colors: (
+  dark: (
+    primary: #165DFF,
+    primary-light: #3d7eff,
+    primary-dark: #0d47cc,
+    accent: #00CFFD,
+    accent-light: #4dd9fd,
+    success: #00E5A0,
+    warning: #FFB800,
+    error: #FF4757,
+    info: #165DFF,
+    bg-primary: #0a0e17,
+    bg-secondary: #111827,
+    bg-tertiary: #1a2332,
+    bg-card: #151d2e,
+    text-primary: #FFFFFF,
+    text-secondary: #8B95A5,
+    text-tertiary: #5C667E,
+    border: #2A3548,
+    border-light: #1E2736,
+  ),
+  light: (
+    primary: #165DFF,
+    primary-light: #3d7eff,
+    primary-dark: #0d47cc,
+    accent: #00CFFD,
+    accent-light: #4dd9fd,
+    success: #00C853,
+    warning: #FFB800,
+    error: #FF4757,
+    info: #165DFF,
+    bg-primary: #F5F7FA,
+    bg-secondary: #FFFFFF,
+    bg-tertiary: #EEF1F6,
+    bg-card: #FFFFFF,
+    text-primary: #1A2332,
+    text-secondary: #5C667E,
+    text-tertiary: #8B95A5,
+    border: #E2E8F0,
+    border-light: #EDF2F7,
+  )
+);
 
-// 颜色
-$primary-color: #1890ff;
-$success-color: #52c41a;
-$warning-color: #faad14;
-$error-color: #f5222d;
-$info-color: #1890ff;
+// 动态获取主题颜色
+@function get-theme-color($key) {
+  @return map-get($theme-colors, $key);
+}
 
-// 深色主题颜色
-$bg-color-dark: #1a1a1a;
-$bg-color-darker: #0d0d0d;
-$bg-color-light: #2a2a2a;
-$bg-color-lighter: #3a3a3a;
+// CSS变量生成 mixin
+@mixin use-theme($theme: 'dark') {
+  $colors: map-get($theme-colors, $theme);
+  
+  --primary-color: #{map-get($colors, primary)};
+  --primary-light: #{map-get($colors, primary-light)};
+  --primary-dark: #{map-get($colors, primary-dark)};
+  --accent-color: #{map-get($colors, accent)};
+  --accent-light: #{map-get($colors, accent-light)};
+  --success-color: #{map-get($colors, success)};
+  --warning-color: #{map-get($colors, warning)};
+  --error-color: #{map-get($colors, error)};
+  --info-color: #{map-get($colors, info)};
+  
+  --bg-primary: #{map-get($colors, bg-primary)};
+  --bg-secondary: #{map-get($colors, bg-secondary)};
+  --bg-tertiary: #{map-get($colors, bg-tertiary)};
+  --bg-card: #{map-get($colors, bg-card)};
+  
+  --text-primary: #{map-get($colors, text-primary)};
+  --text-secondary: #{map-get($colors, text-secondary)};
+  --text-tertiary: #{map-get($colors, text-tertiary)};
+  
+  --border-color: #{map-get($colors, border)};
+  --border-color-light: #{map-get($colors, border-light)};
+}
 
-$text-color-primary: #ffffff;
-$text-color-secondary: #a0a0a0;
-$text-color-disabled: #666666;
+// 旧版变量兼容 - 深色主题
+$primary-color: #165DFF;
+$success-color: #00E5A0;
+$warning-color: #FFB800;
+$error-color: #FF4757;
+$info-color: #165DFF;
 
-$border-color: #3a3a3a;
-$border-color-light: #2a2a2a;
+$bg-color-dark: #0a0e17;
+$bg-color-darker: #050810;
+$bg-color-light: #111827;
+$bg-color-lighter: #1a2332;
+
+$text-color-primary: #FFFFFF;
+$text-color-secondary: #8B95A5;
+$text-color-disabled: #5C667E;
+
+$border-color: #2A3548;
+$border-color-light: #1E2736;
 
 // 侧边栏
 $sidebar-width: 240px;
 $sidebar-collapsed-width: 64px;
-$sidebar-bg: #1f1f1f;
+$sidebar-bg: #111827;
 
 // 头部
 $header-height: 60px;
-$header-bg: #1f1f1f;
+$header-bg: #111827;
 
 // 字体
-$font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
-  'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
-  'Noto Color Emoji';
+$font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 $font-size-base: 14px;
 $font-size-xs: 10px;
 $font-size-sm: 12px;
@@ -42,13 +111,14 @@ $font-size-lg: 16px;
 $font-size-xl: 18px;
 
 // 圆角
-$border-radius-base: 4px;
-$border-radius-lg: 8px;
-$border-radius-sm: 2px;
+$border-radius-base: 6px;
+$border-radius-lg: 12px;
+$border-radius-sm: 4px;
 
-// 阴影
-$box-shadow-base: 0 2px 8px rgba(0, 0, 0, 0.15);
-$box-shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.2);
+// 阴影 - 科技感
+$box-shadow-base: 0 4px 16px rgba(22, 93, 255, 0.1);
+$box-shadow-lg: 0 8px 32px rgba(22, 93, 255, 0.15);
+$box-shadow-glow: 0 0 20px rgba(0, 207, 253, 0.3);
 
 // 过渡
 $transition-duration: 0.3s;
