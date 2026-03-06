@@ -1,24 +1,40 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useSubscriptionStore, useNodeStore, useSettingsStore } from '@/stores'
+import request from '@/api/request'
 
 const subscriptionStore = useSubscriptionStore()
 const nodeStore = useNodeStore()
 const settingsStore = useSettingsStore()
 
-/**
- * 初始化仪表盘
- */
+const coreVersion = ref<string>('')
+const coreInstalled = ref<boolean>(false)
+
+interface CoreInfo {
+  version: string
+  installPath: string
+  downloadUrl: string
+  installed: boolean
+}
+
+async function fetchCoreInfo() {
+  try {
+    const info = await request.get<CoreInfo>('/core/info')
+    coreVersion.value = info.version || '未安装'
+    coreInstalled.value = info.installed
+  } catch (error) {
+    console.error('获取内核信息失败:', error)
+    coreVersion.value = '未安装'
+  }
+}
+
 onMounted(async () => {
   try {
-    // 加载订阅列表
     await subscriptionStore.fetchSubscriptions()
-    // 加载节点列表
     await nodeStore.fetchNodes()
-    // 加载连接状态
     await settingsStore.fetchConnectionStatus()
-    // 加载当前节点
     await nodeStore.fetchCurrentNode()
+    await fetchCoreInfo()
   } catch (error) {
     console.error('加载数据失败:', error)
   }
@@ -138,6 +154,33 @@ function formatTraffic(bytes: number): string {
           <div class="stat-label">连接状态</div>
           <div class="stat-value" :class="{ connected: settingsStore.isConnected }">
             {{ settingsStore.isConnected ? '已连接' : '未连接' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon core">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path
+              d="M12 2L2 7L12 12L22 7L12 2Z"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <path
+              d="M2 17L12 22L22 17"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label">内核版本</div>
+          <div class="stat-value" :class="{ installed: coreInstalled }">
+            {{ coreVersion || '未安装' }}
           </div>
         </div>
       </div>
@@ -299,6 +342,11 @@ function formatTraffic(bytes: number): string {
   &.connection {
     background-color: rgba($error-color, 0.1);
     color: $error-color;
+  }
+
+  &.core {
+    background-color: rgba(#9333ea, 0.1);
+    color: #9333ea;
   }
 }
 

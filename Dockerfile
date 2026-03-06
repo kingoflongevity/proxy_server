@@ -1,40 +1,44 @@
-# 阶段1: 构建前端
-FROM node:18-alpine AS frontend-builder
-
-WORKDIR /app/frontend
-
-COPY frontend/package*.json ./
-RUN npm install
-
-COPY frontend/ ./
-RUN npm run build
-
-# 阶段2: 运行后端
+# 构建后端
 FROM golang:1.21-alpine AS backend-builder
 
-WORKDIR /app/backend
-
+WORKDIR /app
 COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
-COPY backend/ ./
-RUN CGO_ENABLED=0 GOOS=linux go build -o proxy-server .
+COPY backend .
+RUN CGO_ENABLED=1 GOOS=linux go build -o proxy-server .
 
-# 最终镜像
-FROM alpine:3.19
+# 构建前端
+FROM node:18-alpine AS frontend-builder
 
-RUN apk add --no-cache ca-certificates xray
+WORKDIR /app
+COPY frontend/package*.json ./
+RUN npm install
+
+COPY frontend .
+RUN npm run build
+
+# 运行镜像
+FROM alpine:latest
+
+RUN apk add --no-cache ca-certificates sqlite
 
 WORKDIR /app
 
-COPY --from=backend-builder /app/backend/proxy-server ./
-COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
+# 复制后端
+COPY --from=backend-builder /app/proxy-server .
 
-RUN mkdir -p /app/data /app/logs
+# 复制前端静态文件
+COPY --from=frontend-builder /app/dist ./static
 
-EXPOSE 3000 8000
+# 创建数据目录
+RUN mkdir -p /app/data
 
-ENV PORT=8000
-ENV FRONTEND_PORT=3000
+# 暴露端口
+EXPOSE 8000 10808 10809 10810
 
-ENTRYPOINT ["./proxy-server"]
+# 设置环境变量
+ENV GIN_MODE=release
+
+# 启动服务
+CMD ["./proxy-server"]

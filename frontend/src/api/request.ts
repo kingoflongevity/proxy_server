@@ -71,6 +71,16 @@ export const request = {
   },
 
   post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    if (data instanceof FormData) {
+      const formDataConfig = {
+        ...config,
+        headers: {
+          ...config?.headers,
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+      return instance.post(url, data, formDataConfig)
+    }
     return instance.post(url, data, config)
   },
 

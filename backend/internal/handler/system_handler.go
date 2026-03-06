@@ -1,8 +1,10 @@
 package handler
 
 import (
+	"io"
 	"proxy_server/internal/model"
 	"proxy_server/internal/service"
+	"proxy_server/internal/xray"
 	"proxy_server/pkg/response"
 
 	"github.com/gin-gonic/gin"
@@ -11,12 +13,14 @@ import (
 // SystemHandler 系统处理器
 type SystemHandler struct {
 	systemService service.SystemService
+	coreManager   *xray.CoreManager
 }
 
 // NewSystemHandler 创建系统处理器
 func NewSystemHandler(systemService service.SystemService) *SystemHandler {
 	return &SystemHandler{
 		systemService: systemService,
+		coreManager:   xray.NewCoreManager(),
 	}
 }
 
@@ -164,4 +168,53 @@ func (h *SystemHandler) ClearCache(c *gin.Context) {
 	}
 
 	response.Success(c, nil)
+}
+
+// GetCoreInfo 获取内核信息
+func (h *SystemHandler) GetCoreInfo(c *gin.Context) {
+	info, err := h.coreManager.GetCoreInfo()
+	if err != nil {
+		response.Error(c, 4000, err.Error())
+		return
+	}
+
+	response.Success(c, info)
+}
+
+// UpdateCore 更新内核（从官方下载）
+func (h *SystemHandler) UpdateCore(c *gin.Context) {
+	err := h.coreManager.DownloadCore(func(progress int) {
+		// 可以通过 WebSocket 推送进度，这里简化处理
+	})
+	if err != nil {
+		response.Error(c, 4000, err.Error())
+		return
+	}
+
+	info, _ := h.coreManager.GetCoreInfo()
+	response.Success(c, info)
+}
+
+// UploadCore 上传内核文件
+func (h *SystemHandler) UploadCore(c *gin.Context) {
+	file, _, err := c.Request.FormFile("file")
+	if err != nil {
+		response.BadRequest(c, "请上传内核文件")
+		return
+	}
+	defer file.Close()
+
+	fileData, err := io.ReadAll(file)
+	if err != nil {
+		response.Error(c, 4000, "读取文件失败")
+		return
+	}
+
+	if err := h.coreManager.UploadCore(fileData); err != nil {
+		response.Error(c, 4000, err.Error())
+		return
+	}
+
+	info, _ := h.coreManager.GetCoreInfo()
+	response.Success(c, info)
 }

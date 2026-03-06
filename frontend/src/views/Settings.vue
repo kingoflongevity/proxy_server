@@ -1,24 +1,44 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useSettingsStore } from '@/stores'
-import type { Theme, Language, LogLevel, ProxyMode } from '@/types'
+import request from '@/api/request'
+import type { Theme, Language, ProxyMode } from '@/types'
 
 const settingsStore = useSettingsStore()
 
 const activeTab = ref<'general' | 'network' | 'advanced'>('general')
 
-/**
- * 初始化
- */
+interface CoreInfo {
+  version: string
+  installPath: string
+  downloadUrl: string
+  installed: boolean
+}
+
+const coreInfo = ref<CoreInfo>({
+  version: '',
+  installPath: '',
+  downloadUrl: '',
+  installed: false,
+})
+const coreUpdating = ref(false)
+
+async function fetchCoreInfo() {
+  try {
+    const info = await request.get<CoreInfo>('/core/info')
+    coreInfo.value = info
+  } catch (error) {
+    console.error('获取内核信息失败:', error)
+  }
+}
+
 onMounted(async () => {
   await settingsStore.fetchSettings()
   await settingsStore.fetchSystemInfo()
   await settingsStore.fetchProxyMode()
+  await fetchCoreInfo()
 })
 
-/**
- * 切换主题
- */
 async function handleThemeChange(theme: Theme) {
   try {
     await settingsStore.toggleTheme(theme)
@@ -27,9 +47,6 @@ async function handleThemeChange(theme: Theme) {
   }
 }
 
-/**
- * 切换语言
- */
 async function handleLanguageChange(language: Language) {
   try {
     await settingsStore.toggleLanguage(language)
@@ -38,9 +55,6 @@ async function handleLanguageChange(language: Language) {
   }
 }
 
-/**
- * 切换代理模式
- */
 async function handleProxyModeChange(mode: ProxyMode) {
   try {
     await settingsStore.toggleProxyMode(mode)
@@ -74,9 +88,44 @@ async function handleRestart() {
   }
 }
 
-/**
- * 导出配置
- */
+async function handleUpdateCore() {
+  if (!confirm('确定要从官方更新 Xray 内核吗？这可能需要几分钟时间。')) {
+    return
+  }
+
+  coreUpdating.value = true
+  try {
+    const info = await request.post('/core/update')
+    coreInfo.value = info
+    alert('内核更新成功！')
+  } catch (error) {
+    console.error('更新内核失败:', error)
+    alert('更新内核失败: ' + error)
+  } finally {
+    coreUpdating.value = false
+  }
+}
+
+async function handleUploadCore(event: Event) {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (!file) {
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const info = await request.post('/core/upload', formData)
+    coreInfo.value = info
+    alert('内核上传成功！')
+  } catch (error) {
+    console.error('上传内核失败:', error)
+    alert('上传内核失败: ' + error)
+  }
+}
+
 async function handleExportConfig() {
   try {
     const config = await settingsStore.exportConfig()
@@ -489,6 +538,30 @@ function formatMemory(bytes: number): string {
             placeholder="https://dns.google/dns-query&#10;1.1.1.1&#10;8.8.8.8"
             rows="3"
           ></textarea>
+        </div>
+      </div>
+
+      <div class="setting-item">
+        <div class="setting-label">
+          <h4>内核管理</h4>
+          <p>Xray 内核版本管理</p>
+        </div>
+        <div class="setting-control">
+          <div class="core-info">
+            <div class="info-row">
+              <span class="label">当前版本:</span>
+              <span class="value">{{ coreInfo.version || '未安装' }}</span>
+            </div>
+            <div class="button-group">
+              <button type="button" class="btn" :disabled="coreUpdating" @click="handleUpdateCore">
+                {{ coreUpdating ? '更新中...' : '从官方更新' }}
+              </button>
+              <label class="btn">
+                手动上传
+                <input type="file" accept=".zip,.exe" @change="handleUploadCore" hidden />
+              </label>
+            </div>
+          </div>
         </div>
       </div>
 

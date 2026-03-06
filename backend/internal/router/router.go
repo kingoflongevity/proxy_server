@@ -1,6 +1,7 @@
 package router
 
 import (
+	"net/http"
 	"proxy_server/internal/handler"
 	"proxy_server/internal/middleware"
 
@@ -29,6 +30,12 @@ func SetupRouter(
 			"status":  "ok",
 			"message": "Service is running",
 		})
+	})
+	
+	// 静态文件服务（用于生产部署）
+	r.Static("/assets", "./static/assets")
+	r.NoRoute(func(c *gin.Context) {
+		c.File("./static/index.html")
 	})
 	
 	api := r.Group("/api")
@@ -101,6 +108,11 @@ func SetupRouter(
 		api.GET("/config/export", systemHandler.ExportConfig)
 		api.POST("/config/import", systemHandler.ImportConfig)
 		api.POST("/system/clear-cache", systemHandler.ClearCache)
+		
+		// 内核管理API
+		api.GET("/core/info", systemHandler.GetCoreInfo)
+		api.POST("/core/update", systemHandler.UpdateCore)
+		api.POST("/core/upload", systemHandler.UploadCore)
 	}
 	
 	return r

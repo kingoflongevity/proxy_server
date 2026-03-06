@@ -272,66 +272,68 @@ function getStatusColor(status: string): string {
       </div>
     </div>
 
-    <!-- 添加/编辑对话框 -->
-    <div v-if="showAddDialog" class="dialog-overlay" @click.self="showAddDialog = false">
-      <div class="dialog">
-        <div class="dialog-header">
-          <h3>{{ editingSubscription ? '编辑订阅' : '添加订阅' }}</h3>
-          <button class="close-btn" @click="showAddDialog = false">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path
-                d="M18 6L6 18M6 6L18 18"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              />
-            </svg>
-          </button>
+    <!-- 添加/编辑对话框 - 使用 Teleport 移到 body 层级 -->
+    <Teleport to="body">
+      <div v-if="showAddDialog" class="dialog-overlay" @click.self="showAddDialog = false">
+        <div class="dialog">
+          <div class="dialog-header">
+            <h3>{{ editingSubscription ? '编辑订阅' : '添加订阅' }}</h3>
+            <button type="button" class="close-btn" @click="showAddDialog = false">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <form class="dialog-body" @submit.prevent="handleSubmit">
+            <div class="form-group">
+              <label>订阅名称</label>
+              <input v-model="formData.name" type="text" required placeholder="输入订阅名称" />
+            </div>
+
+            <div class="form-group">
+              <label>订阅地址</label>
+              <input v-model="formData.url" type="url" required placeholder="输入订阅地址" />
+            </div>
+
+            <div class="form-group">
+              <label>订阅类型</label>
+              <select v-model="formData.type">
+                <option value="mixed">混合</option>
+                <option value="ss">Shadowsocks</option>
+                <option value="ssr">ShadowsocksR</option>
+                <option value="vmess">VMess</option>
+                <option value="vless">VLESS</option>
+                <option value="trojan">Trojan</option>
+                <option value="hysteria">Hysteria</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input v-model="formData.autoUpdate" type="checkbox" />
+                <span>自动更新</span>
+              </label>
+            </div>
+
+            <div v-if="formData.autoUpdate" class="form-group">
+              <label>更新间隔（小时）</label>
+              <input v-model.number="formData.updateInterval" type="number" min="1" max="168" />
+            </div>
+
+            <div class="dialog-footer">
+              <button type="button" class="btn" @click="showAddDialog = false">取消</button>
+              <button type="submit" class="btn btn-primary">确定</button>
+            </div>
+          </form>
         </div>
-
-        <form class="dialog-body" @submit.prevent="handleSubmit">
-          <div class="form-group">
-            <label>订阅名称</label>
-            <input v-model="formData.name" type="text" required placeholder="输入订阅名称" />
-          </div>
-
-          <div class="form-group">
-            <label>订阅地址</label>
-            <input v-model="formData.url" type="url" required placeholder="输入订阅地址" />
-          </div>
-
-          <div class="form-group">
-            <label>订阅类型</label>
-            <select v-model="formData.type">
-              <option value="mixed">混合</option>
-              <option value="ss">Shadowsocks</option>
-              <option value="ssr">ShadowsocksR</option>
-              <option value="vmess">VMess</option>
-              <option value="vless">VLESS</option>
-              <option value="trojan">Trojan</option>
-              <option value="hysteria">Hysteria</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="checkbox-label">
-              <input v-model="formData.autoUpdate" type="checkbox" />
-              <span>自动更新</span>
-            </label>
-          </div>
-
-          <div v-if="formData.autoUpdate" class="form-group">
-            <label>更新间隔（小时）</label>
-            <input v-model.number="formData.updateInterval" type="number" min="1" max="168" />
-          </div>
-
-          <div class="dialog-footer">
-            <button type="button" class="btn" @click="showAddDialog = false">取消</button>
-            <button type="submit" class="btn btn-primary">确定</button>
-          </div>
-        </form>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -629,5 +631,116 @@ function getStatusColor(status: string): string {
     align-items: flex-start;
     gap: $spacing-md;
   }
+}
+</style>
+
+<!-- 全局样式 - 对话框使用 Teleport 后需要全局样式 -->
+<style lang="scss">
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 500px;
+  background-color: #111827;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(22, 93, 255, 0.15);
+  border: 1px solid #2A3548;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 1px solid #2A3548;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #FFFFFF;
+  }
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #8B95A5;
+  cursor: pointer;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background-color: #1a2332;
+    color: #FFFFFF;
+  }
+}
+
+.dialog-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+
+  label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: #8B95A5;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 8px 16px;
+    background-color: #050810;
+    border: 1px solid #2A3548;
+    border-radius: 6px;
+    color: #FFFFFF;
+    font-size: 14px;
+
+    &:focus {
+      border-color: #165DFF;
+      outline: none;
+    }
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+
+    input[type='checkbox'] {
+      width: auto;
+    }
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
 }
 </style>
