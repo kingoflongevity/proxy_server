@@ -115,15 +115,23 @@ export const useSettingsStore = defineStore('settings', () => {
     loading.value = true
     error.value = null
     try {
-      const result = await settingsApi.updateSettings(data)
-      settings.value = result
-      // 应用主题和语言
+      // 先立即应用主题变化到本地状态，提供即时反馈
       if (data.theme) {
+        settings.value.theme = data.theme
         applyTheme(data.theme)
       }
       if (data.language) {
+        settings.value.language = data.language
         applyLanguage(data.language)
       }
+      if (data.proxyMode) {
+        settings.value.proxyMode = data.proxyMode
+      }
+      
+      // 然后发送API请求
+      const result = await settingsApi.updateSettings(data)
+      // 更新本地状态
+      settings.value = { ...settings.value, ...result }
       return result
     } catch (e: any) {
       error.value = e.message || '更新系统设置失败'
