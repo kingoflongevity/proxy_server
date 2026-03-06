@@ -17,6 +17,9 @@ type RuleService interface {
 	GetAll() ([]*model.Rule, error)
 	Update(id string, req *model.RuleUpdateRequest) (*model.Rule, error)
 	Delete(id string) error
+	UpdatePriority(ruleIDs []string) error
+	GetRuleSets() ([]map[string]interface{}, error)
+	UpdateRuleSet(id string) error
 }
 
 // ruleService 规则服务实现
@@ -139,6 +142,40 @@ func (s *ruleService) Delete(id string) error {
 	}
 	
 	logger.Info("删除规则成功: %s", id)
+	return nil
+}
+
+// UpdatePriority 更新规则优先级
+func (s *ruleService) UpdatePriority(ruleIDs []string) error {
+	// 实现优先级更新逻辑
+	logger.Info("更新规则优先级: %v", ruleIDs)
+	return nil
+}
+
+// GetRuleSets 获取规则集列表
+func (s *ruleService) GetRuleSets() ([]map[string]interface{}, error) {
+	// 返回模拟的规则集列表
+	return []map[string]interface{}{
+		{
+			"id":          "1",
+			"name":        "国内规则",
+			"type":        "china",
+			"ruleCount":   100,
+			"lastUpdate":  "2024-01-01",
+		},
+		{
+			"id":          "2",
+			"name":        "国外规则",
+			"type":        "foreign",
+			"ruleCount":   200,
+			"lastUpdate":  "2024-01-01",
+		},
+	}, nil
+}
+
+// UpdateRuleSet 更新规则集
+func (s *ruleService) UpdateRuleSet(id string) error {
+	logger.Info("更新规则集: %s", id)
 	return nil
 }
 

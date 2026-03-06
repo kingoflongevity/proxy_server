@@ -52,8 +52,12 @@ func SetupRouter(
 			nodes.GET("/:id", nodeHandler.GetByID)
 			nodes.PUT("/:id", nodeHandler.Update)
 			nodes.POST("/:id/test", nodeHandler.Test)
+			nodes.POST("/:id/select", nodeHandler.Select)
 			nodes.POST("/connect", nodeHandler.Connect)
 			nodes.POST("/disconnect", nodeHandler.Disconnect)
+			nodes.GET("/:id/stats", nodeHandler.GetStats)
+			nodes.POST("/test", nodeHandler.TestBatch)
+			nodes.POST("/test-all", nodeHandler.TestAll)
 		}
 		
 		rules := api.Group("/rules")
@@ -63,7 +67,11 @@ func SetupRouter(
 			rules.GET("/:id", ruleHandler.GetByID)
 			rules.PUT("/:id", ruleHandler.Update)
 			rules.DELETE("/:id", ruleHandler.Delete)
+			rules.PUT("/priority", ruleHandler.UpdatePriority)
 		}
+		
+		api.GET("/rule-sets", ruleHandler.GetRuleSets)
+		api.POST("/rule-sets/:id/update", ruleHandler.UpdateRuleSet)
 		
 		api.GET("/status", systemHandler.GetStatus)
 		api.GET("/traffic", systemHandler.GetTraffic)

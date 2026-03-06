@@ -19,9 +19,13 @@ type NodeService interface {
 	GetList(query *model.NodeListQuery) ([]*model.Node, int64, error)
 	Update(id string, req *model.NodeUpdateRequest) (*model.Node, error)
 	Test(id string) (int, error)
+	TestBatch(ids []string) ([]map[string]interface{}, error)
+	TestAll() ([]map[string]interface{}, error)
 	Connect(nodeID string) error
 	Disconnect() error
+	Select(id string) error
 	GetCurrentNode() *model.Node
+	GetStats(id string) (map[string]interface{}, error)
 }
 
 // nodeService 节点服务实现
@@ -264,4 +268,56 @@ func (s *nodeService) GetCurrentNode() *model.Node {
 		return s.processManager.GetCurrentNode()
 	}
 	return nil
+}
+
+// Select 选择节点
+func (s *nodeService) Select(id string) error {
+	node, err := s.nodeRepo.GetByID(id)
+	if err != nil {
+		return err
+	}
+
+	s.currentNode = node
+	return nil
+}
+
+// GetStats 获取节点统计信息
+func (s *nodeService) GetStats(id string) (map[string]interface{}, error) {
+	// 返回模拟的统计信息
+	return map[string]interface{}{
+		"uploadSpeed":    0,
+		"downloadSpeed": 0,
+		"uploadTotal":   0,
+		"downloadTotal": 0,
+		"connectionCount": 0,
+	}, nil
+}
+
+// TestBatch 批量测试节点
+func (s *nodeService) TestBatch(ids []string) ([]map[string]interface{}, error) {
+	results := make([]map[string]interface{}, 0, len(ids))
+	for _, id := range ids {
+		latency, err := s.Test(id)
+		results = append(results, map[string]interface{}{
+			"id":      id,
+			"latency": latency,
+			"error":   err,
+		})
+	}
+	return results, nil
+}
+
+// TestAll 测试所有节点
+func (s *nodeService) TestAll() ([]map[string]interface{}, error) {
+	nodes, err := s.nodeRepo.GetAll()
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]string, len(nodes))
+	for i, node := range nodes {
+		ids[i] = node.ID
+	}
+
+	return s.TestBatch(ids)
 }

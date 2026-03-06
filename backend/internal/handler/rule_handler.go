@@ -103,3 +103,48 @@ func (h *RuleHandler) Delete(c *gin.Context) {
 	
 	response.SuccessWithMessage(c, "删除成功", nil)
 }
+
+// UpdatePriority 更新规则优先级
+func (h *RuleHandler) UpdatePriority(c *gin.Context) {
+	var req struct {
+		Rules []string `json:"rules"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误: "+err.Error())
+		return
+	}
+
+	if err := h.ruleService.UpdatePriority(req.Rules); err != nil {
+		response.Error(c, 3001, err.Error())
+		return
+	}
+
+	response.SuccessWithMessage(c, "优先级更新成功", nil)
+}
+
+// GetRuleSets 获取规则集
+func (h *RuleHandler) GetRuleSets(c *gin.Context) {
+	ruleSets, err := h.ruleService.GetRuleSets()
+	if err != nil {
+		response.Error(c, 3002, err.Error())
+		return
+	}
+
+	response.Success(c, ruleSets)
+}
+
+// UpdateRuleSet 更新规则集
+func (h *RuleHandler) UpdateRuleSet(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.BadRequest(c, "缺少规则集ID")
+		return
+	}
+
+	if err := h.ruleService.UpdateRuleSet(id); err != nil {
+		response.Error(c, 3003, err.Error())
+		return
+	}
+
+	response.SuccessWithMessage(c, "规则集更新成功", nil)
+}

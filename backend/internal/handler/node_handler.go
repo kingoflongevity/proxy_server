@@ -133,3 +133,69 @@ func (h *NodeHandler) GetCurrent(c *gin.Context) {
 
 	response.Success(c, node)
 }
+
+// Select 选择节点
+func (h *NodeHandler) Select(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.BadRequest(c, "缺少节点ID")
+		return
+	}
+
+	if err := h.nodeService.Select(id); err != nil {
+		response.Error(c, 2004, err.Error())
+		return
+	}
+
+	response.SuccessWithMessage(c, "选择节点成功", nil)
+}
+
+// GetStats 获取节点统计信息
+func (h *NodeHandler) GetStats(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		response.BadRequest(c, "缺少节点ID")
+		return
+	}
+
+	stats, err := h.nodeService.GetStats(id)
+	if err != nil {
+		response.Error(c, 2005, err.Error())
+		return
+	}
+
+	response.Success(c, stats)
+}
+
+// TestBatch 批量测试节点
+func (h *NodeHandler) TestBatch(c *gin.Context) {
+	var req struct {
+		IDs []string `json:"ids"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误: "+err.Error())
+		return
+	}
+
+	results, err := h.nodeService.TestBatch(req.IDs)
+	if err != nil {
+		response.Error(c, 2001, err.Error())
+		return
+	}
+
+	response.Success(c, results)
+}
+
+// TestAll 测试所有节点
+func (h *NodeHandler) TestAll(c *gin.Context) {
+	results, err := h.nodeService.TestAll()
+	if err != nil {
+		response.Error(c, 2001, err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"taskId": "test-all",
+		"results": results,
+	})
+}
