@@ -80,13 +80,29 @@ export const useSettingsStore = defineStore('settings', () => {
     error.value = null
     try {
       const result = await settingsApi.getSettings()
-      settings.value = result
+      // 合并后端返回的数据和默认值，确保所有字段都有值
+      settings.value = {
+        theme: result.theme || 'dark',
+        language: result.language || 'zh-CN',
+        autoStart: result.autoStart ?? false,
+        silentStart: result.silentStart ?? false,
+        allowLan: result.allowLan ?? true,
+        bindAddress: result.bindAddress || '0.0.0.0',
+        port: result.port || 7890,
+        socksPort: result.socksPort || 10808,
+        httpPort: result.httpPort || 10809,
+        mixedPort: result.mixedPort || 10810,
+        logLevel: result.logLevel || 'info',
+        connectionStats: result.connectionStats ?? true,
+        proxyMode: result.proxyMode || 'rule',
+      }
       // 应用主题和语言
-      applyTheme(result.theme)
-      applyLanguage(result.language)
+      applyTheme(settings.value.theme)
+      applyLanguage(settings.value.language)
     } catch (e: any) {
       error.value = e.message || '获取系统设置失败'
-      throw e
+      // 即使API失败，也应用本地默认值
+      applyTheme(settings.value.theme)
     } finally {
       loading.value = false
     }
