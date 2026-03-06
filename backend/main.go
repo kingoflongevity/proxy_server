@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,6 +19,53 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+func checkPort(port int) bool {
+	ln, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
+	if err != nil {
+		return false
+	}
+	ln.Close()
+	return true
+}
+
+func checkAndStartProxy(systemRepo repository.SystemRepository) {
+	settings, err := systemRepo.GetSettings()
+	if err != nil {
+		logger.Warn("获取设置失败: %v", err)
+		return
+	}
+
+	logger.Info("检查代理端口配置...")
+
+	if settings.MixedPort > 0 {
+		if checkPort(settings.MixedPort) {
+			logger.Info("混合端口 %d 已监听", settings.MixedPort)
+		} else {
+			logger.Info("混合端口 %d 未监听 (等待节点连接)", settings.MixedPort)
+		}
+	}
+
+	if settings.SocksPort > 0 && settings.SocksPort != settings.MixedPort {
+		if checkPort(settings.SocksPort) {
+			logger.Info("SOCKS5端口 %d 已监听", settings.SocksPort)
+		} else {
+			logger.Info("SOCKS5端口 %d 未监听 (等待节点连接)", settings.SocksPort)
+		}
+	}
+
+	if settings.HttpPort > 0 && settings.HttpPort != settings.MixedPort && settings.HttpPort != settings.SocksPort {
+		if checkPort(settings.HttpPort) {
+			logger.Info("HTTP端口 %d 已监听", settings.HttpPort)
+		} else {
+			logger.Info("HTTP端口 %d 未监听 (等待节点连接)", settings.HttpPort)
+		}
+	}
+
+	logger.Info("代理模式: %s", settings.ProxyMode)
+	logger.Info("允许局域网: %v", settings.AllowLan)
+	logger.Info("绑定地址: %s", settings.BindAddress)
+}
 
 func main() {
 	// 加载配置
@@ -77,7 +125,10 @@ func main() {
 			os.Exit(1)
 		}
 	}()
-	
+
+	// 检查代理端口状态
+	checkAndStartProxy(systemRepo)
+
 	// 优雅关闭
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
