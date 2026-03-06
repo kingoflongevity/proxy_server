@@ -28,7 +28,7 @@ type LogEntry struct {
 	Node      string    `json:"node,omitempty"`
 }
 
-type LogQuery struct {
+type SystemLogQuery struct {
 	Level   string `form:"level" json:"level"`
 	Limit   int    `form:"limit" json:"limit"`
 	Offset  int    `form:"offset" json:"offset"`

@@ -18,7 +18,7 @@ type SystemRepository interface {
 	SaveTraffic(traffic *model.TrafficStats) error
 	GetTraffic() (*model.TrafficStats, error)
 	SaveLog(log *model.LogEntry) error
-	GetLogs(query *model.LogQuery) ([]*model.LogEntry, error)
+	GetLogs(query *model.SystemLogQuery) ([]*model.LogEntry, error)
 	GetSettings() (*model.SystemSettings, error)
 	SaveSettings(settings *model.SystemSettings) error
 }
@@ -160,7 +160,7 @@ func (r *systemRepository) SaveLog(logEntry *model.LogEntry) error {
 }
 
 // GetLogs 获取日志
-func (r *systemRepository) GetLogs(query *model.LogQuery) ([]*model.LogEntry, error) {
+func (r *systemRepository) GetLogs(query *model.SystemLogQuery) ([]*model.LogEntry, error) {
 	r.logMu.RLock()
 	defer r.logMu.RUnlock()
 	

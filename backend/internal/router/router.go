@@ -13,12 +13,16 @@ func SetupRouter(
 	nodeHandler *handler.NodeHandler,
 	ruleHandler *handler.RuleHandler,
 	systemHandler *handler.SystemHandler,
+	logHandler *handler.LogHandler,
 ) *gin.Engine {
 	r := gin.New()
 	
 	r.Use(middleware.Logger())
 	r.Use(middleware.Recovery())
 	r.Use(cors.Default())
+	
+	// 流量日志中间件
+	r.Use(middleware.TrafficLoggerMiddleware())
 	
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -63,7 +67,22 @@ func SetupRouter(
 		
 		api.GET("/status", systemHandler.GetStatus)
 		api.GET("/traffic", systemHandler.GetTraffic)
-		api.GET("/logs", systemHandler.GetLogs)
+		api.GET("/system/logs", systemHandler.GetLogs)
+		
+		// 日志查询API
+		logs := api.Group("/traffic-logs")
+		{
+			logs.GET("", logHandler.QueryLogs)
+			logs.GET("/stats", logHandler.GetLogStats)
+			logs.DELETE("", logHandler.ClearLogs)
+		}
+		
+		// 流量统计API
+		traffic := api.Group("/traffic-stats")
+		{
+			traffic.GET("/logs", logHandler.GetTrafficLogs)
+			traffic.GET("/summary", logHandler.GetTrafficStats)
+		}
 		
 		api.GET("/settings", systemHandler.GetSettings)
 		api.PUT("/settings", systemHandler.UpdateSettings)

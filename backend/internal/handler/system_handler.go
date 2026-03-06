@@ -44,7 +44,7 @@ func (h *SystemHandler) GetTraffic(c *gin.Context) {
 
 // GetLogs 获取日志
 func (h *SystemHandler) GetLogs(c *gin.Context) {
-	var query model.LogQuery
+	var query model.SystemLogQuery
 	if err := c.ShouldBindQuery(&query); err != nil {
 		response.BadRequest(c, "参数错误: "+err.Error())
 		return

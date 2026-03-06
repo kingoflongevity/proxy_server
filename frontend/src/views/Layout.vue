@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSettingsStore, useNodeStore } from '@/stores'
 
@@ -64,6 +64,27 @@ function toggleCollapse() {
 function navigateTo(path: string) {
   router.push(path)
 }
+
+/**
+ * 监听路由变化，重新加载数据
+ */
+watch(
+  () => route.path,
+  async () => {
+    // 路由变化时刷新数据
+    if (route.path === '/dashboard') {
+      const { useSubscriptionStore, useNodeStore, useSettingsStore } = await import('@/stores')
+      const subscriptionStore = useSubscriptionStore()
+      const nodeStore = useNodeStore()
+      const settingsStore = useSettingsStore()
+      await Promise.all([
+        subscriptionStore.fetchSubscriptions(),
+        nodeStore.fetchNodes(),
+        settingsStore.fetchConnectionStatus(),
+      ])
+    }
+  }
+)
 
 /**
  * 格式化速度
@@ -221,7 +242,7 @@ function formatSpeed(bytesPerSecond: number): string {
 
       <!-- 内容区 -->
       <main class="content">
-        <router-view />
+        <router-view :key="route.fullPath" />
       </main>
     </div>
   </div>

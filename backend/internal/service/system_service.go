@@ -13,7 +13,7 @@ import (
 type SystemService interface {
 	GetStatus() (*model.SystemStatus, error)
 	GetTraffic() (*model.TrafficStats, error)
-	GetLogs(query *model.LogQuery) ([]*model.LogEntry, error)
+	GetLogs(query *model.SystemLogQuery) ([]*model.LogEntry, error)
 	AddLog(level, message, node string)
 	GetSettings() (*model.SystemSettings, error)
 	UpdateSettings(req *model.UpdateSettingsRequest) (*model.SystemSettings, error)
@@ -68,7 +68,7 @@ func (s *systemService) GetTraffic() (*model.TrafficStats, error) {
 }
 
 // GetLogs 获取日志
-func (s *systemService) GetLogs(query *model.LogQuery) ([]*model.LogEntry, error) {
+func (s *systemService) GetLogs(query *model.SystemLogQuery) ([]*model.LogEntry, error) {
 	if query.Limit <= 0 {
 		query.Limit = 100
 	}

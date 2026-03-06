@@ -49,15 +49,17 @@ func main() {
 	nodeService := service.NewNodeService(nodeRepo, systemRepo)
 	ruleService := service.NewRuleService(ruleRepo)
 	systemService := service.NewSystemService(systemRepo)
+	logService := service.NewLogService()
 	
 	// 初始化Handler层
 	subHandler := handler.NewSubscriptionHandler(subService)
 	nodeHandler := handler.NewNodeHandler(nodeService)
 	ruleHandler := handler.NewRuleHandler(ruleService)
 	systemHandler := handler.NewSystemHandler(systemService)
+	logHandler := handler.NewLogHandler(logService)
 	
 	// 设置路由
-	r := router.SetupRouter(subHandler, nodeHandler, ruleHandler, systemHandler)
+	r := router.SetupRouter(subHandler, nodeHandler, ruleHandler, systemHandler, logHandler)
 	
 	// 创建HTTP服务器
 	srv := &http.Server{

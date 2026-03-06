@@ -33,18 +33,23 @@ instance.interceptors.request.use(
  * 响应拦截器
  */
 instance.interceptors.response.use(
-  (response: AxiosResponse<ApiResponse>) => {
-    const { data } = response
-    if (data.code === 0) {
-      return data.data
+  (response: AxiosResponse<any>) => {
+    // 处理后端响应格式 {code: 0, message: "success", data: ...}
+    if (response.data && typeof response.data === 'object') {
+      if ('code' in response.data) {
+        if (response.data.code === 0) {
+          return response.data.data
+        }
+        // 业务错误
+        const error: ApiError = {
+          code: response.data.code,
+          message: response.data.message || '请求失败',
+          details: response.data.message,
+        }
+        return Promise.reject(error)
+      }
     }
-    // 业务错误
-    const error: ApiError = {
-      code: data.code,
-      message: data.message,
-      details: data.message,
-    }
-    return Promise.reject(error)
+    return response.data
   },
   (error) => {
     // HTTP错误
