@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"log"
+	"net/http"
 	"proxy_server/internal/service"
 	"sync"
 	"time"
@@ -14,6 +15,9 @@ import (
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		return true // 允许所有来源的WebSocket连接
+	},
 }
 
 type WebSocketMessage struct {
