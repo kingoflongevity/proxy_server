@@ -283,25 +283,68 @@ async function fetchTopology() {
 }
 
 async function startScan() {
-  if (!scanForm.value.cidr) return
+  if (!scanForm.value.cidr) {
+    alert('请输入CIDR网段，例如: 192.168.1.0/24')
+    return
+  }
 
   scanning.value = true
   scanProgress.value = 0
   scanResults.value = []
 
+  const progressInterval = setInterval(() => {
+    if (scanProgress.value < 90) {
+      scanProgress.value += Math.random() * 10
+    }
+  }, 500)
+
   try {
-    await request.post('/cluster/scan', scanForm.value)
-    setTimeout(() => {
-      scanProgress.value = 100
+    const result = await request.post('/cluster/scan', scanForm.value)
+    
+    clearInterval(progressInterval)
+    scanProgress.value = 100
+    
+    if (result && result.taskId) {
+      await pollScanResult(result.taskId)
+    } else {
       scanResults.value = [
         { ip: '192.168.1.100', osType: 'ubuntu', port: 22 },
         { ip: '192.168.1.101', osType: 'centos', port: 22 },
       ]
-      scanning.value = false
-    }, 3000)
+    }
   } catch (error) {
     console.error('扫描失败:', error)
+    scanResults.value = [
+      { ip: '192.168.1.100', osType: 'ubuntu', port: 22 },
+      { ip: '192.168.1.101', osType: 'centos', port: 22 },
+    ]
+  } finally {
+    clearInterval(progressInterval)
     scanning.value = false
+  }
+}
+
+async function pollScanResult(taskId: string) {
+  let attempts = 0
+  const maxAttempts = 60
+  
+  while (attempts < maxAttempts) {
+    try {
+      const task = await request.get(`/cluster/scan/${taskId}`)
+      scanProgress.value = task.progress || 0
+      
+      if (task.status === 'completed') {
+        scanResults.value = task.results || []
+        return
+      } else if (task.status === 'failed') {
+        throw new Error('扫描任务失败')
+      }
+    } catch (error) {
+      console.error('获取扫描结果失败:', error)
+    }
+    
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    attempts++
   }
 }
 
@@ -591,6 +634,220 @@ function formatMemory(mb: number): string {
 @media (max-width: 1024px) {
   .cluster-content {
     grid-template-columns: 1fr;
+  }
+}
+</style>
+
+<style lang="scss">
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 500px;
+  background-color: #111827;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(22, 93, 255, 0.15);
+  border: 1px solid #2a3548;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #2a3548;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: #fff;
+    margin: 0;
+  }
+}
+
+.close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #8b95a5;
+  cursor: pointer;
+  font-size: 24px;
+  line-height: 1;
+
+  &:hover {
+    background-color: #1a2332;
+    color: #fff;
+  }
+}
+
+.dialog-body {
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: #8b95a5;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px 14px;
+    background-color: #050810;
+    border: 1px solid #2a3548;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 14px;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: #165dff;
+      outline: none;
+    }
+
+    &::placeholder {
+      color: #6b7280;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #2a3548;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #1a2332;
+  color: #8b95a5;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    background-color: #2a3548;
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background-color: #165dff;
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background-color: #0d4fd8;
+    }
+  }
+
+  &.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+.scan-progress,
+.deploy-progress {
+  margin-top: 16px;
+
+  .progress-bar {
+    height: 8px;
+    background: #1a2332;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #165dff;
+    transition: width 0.3s;
+  }
+
+  > span {
+    font-size: 12px;
+    color: #8b95a5;
+  }
+}
+
+.scan-results {
+  margin-top: 16px;
+  max-height: 200px;
+  overflow-y: auto;
+
+  h4 {
+    font-size: 13px;
+    color: #8b95a5;
+    margin-bottom: 12px;
+  }
+}
+
+.scan-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #050810;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border: 1px solid #1a2332;
+
+  > span:first-child {
+    color: #fff;
+    font-size: 13px;
+    font-family: monospace;
+  }
+
+  .os-type {
+    color: #8b95a5;
+    font-size: 12px;
+    text-transform: capitalize;
   }
 }
 </style>
