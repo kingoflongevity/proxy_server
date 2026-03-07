@@ -197,22 +197,35 @@ func TrafficLoggerMiddleware() gin.HandlerFunc {
 		endTime := time.Now()
 		duration := endTime.Sub(startTime)
 
+		// 获取客户端IP和端口
+		clientIP, clientPort := getClientIPAndPort(c)
+
 		// 构建请求日志
 		log := model.RequestLog{
-			ID:           fmt.Sprintf("%d", startTime.UnixNano()),
-			Timestamp:    startTime,
-			ClientIP:     getClientIP(c),
-			Method:       c.Request.Method,
-			URL:          c.Request.URL.String(),
-			Path:         c.Request.URL.Path,
-			QueryString:  c.Request.URL.RawQuery,
-			Headers:      getHeaders(c),
-			BodySize:     int64(len(requestBody)),
-			StatusCode:   c.Writer.Status(),
-			ResponseTime: duration.Milliseconds(),
-			ResponseSize: int64(blw.body.Len()),
-			UserAgent:    c.Request.UserAgent(),
-			Protocol:     c.Request.Proto,
+			ID:            fmt.Sprintf("%d", startTime.UnixNano()),
+			Timestamp:     startTime,
+			ClientIP:      clientIP,
+			Method:        c.Request.Method,
+			URL:           c.Request.URL.String(),
+			Path:          c.Request.URL.Path,
+			QueryString:   c.Request.URL.RawQuery,
+			Headers:       getHeaders(c),
+			BodySize:      int64(len(requestBody)),
+			StatusCode:    c.Writer.Status(),
+			ResponseTime:  duration.Milliseconds(),
+			ResponseSize:  int64(blw.body.Len()),
+			UserAgent:     c.Request.UserAgent(),
+			Protocol:      c.Request.Proto,
+			ClientPort:    clientPort,
+			Scheme:        c.Request.URL.Scheme,
+			Host:          c.Request.Host,
+			ContentType:   c.ContentType(),
+			ContentLength: c.Request.ContentLength,
+			Referrer:      c.GetHeader("Referer"),
+			Origin:        c.GetHeader("Origin"),
+			XForwardedFor: c.GetHeader("X-Forwarded-For"),
+			XRealIP:       c.GetHeader("X-Real-IP"),
+			TLS:           c.Request.TLS != nil,
 		}
 
 		// 发送到写入通道
@@ -256,6 +269,29 @@ func getClientIP(c *gin.Context) string {
 		return c.Request.RemoteAddr
 	}
 	return ip
+}
+
+// getClientIPAndPort 获取客户端IP和端口
+func getClientIPAndPort(c *gin.Context) (string, string) {
+	// 尝试从X-Forwarded-For获取
+	if xff := c.GetHeader("X-Forwarded-For"); xff != "" {
+		ips := strings.Split(xff, ",")
+		if len(ips) > 0 {
+			return strings.TrimSpace(ips[0]), ""
+		}
+	}
+
+	// 尝试从X-Real-IP获取
+	if xri := c.GetHeader("X-Real-IP"); xri != "" {
+		return xri, ""
+	}
+
+	// 使用RemoteAddr
+	host, port, err := net.SplitHostPort(c.Request.RemoteAddr)
+	if err != nil {
+		return c.Request.RemoteAddr, ""
+	}
+	return host, port
 }
 
 // getHeaders 获取请求头
