@@ -12,6 +12,7 @@ import (
 
 	"proxy_server/internal/config"
 	"proxy_server/internal/handler"
+	"proxy_server/internal/middleware"
 	"proxy_server/internal/repository"
 	"proxy_server/internal/router"
 	"proxy_server/internal/service"
@@ -98,7 +99,10 @@ func main() {
 	nodeService := service.NewNodeService(nodeRepo, systemRepo)
 	ruleService := service.NewRuleService(ruleRepo)
 	systemService := service.NewSystemService(systemRepo, nodeService)
-	logService := service.NewLogService()
+	logService := service.NewLogServiceWithDataDir(dataDir)
+
+	// 设置流量日志中间件的日志服务
+	middleware.GetTrafficLogger().SetLogService(logService)
 
 	// 初始化Handler层
 	subHandler := handler.NewSubscriptionHandler(subService)

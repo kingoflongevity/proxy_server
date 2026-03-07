@@ -6,6 +6,7 @@ import (
 
 	"proxy_server/internal/logger"
 	"proxy_server/internal/model"
+	plogger "proxy_server/pkg/logger"
 )
 
 // LogService 日志服务接口
@@ -15,17 +16,35 @@ type LogService interface {
 	GetTrafficLogs(query *model.TrafficQuery) ([]*model.TrafficLog, int64, error)
 	GetTrafficStats(startTime, endTime *time.Time) (*model.LogStats, error)
 	ClearLogs(before *time.Time) error
+	AddLog(log model.RequestLog)
 }
 
 // logService 日志服务实现
 type logService struct {
-	logConfig *model.LogConfig
+	logConfig  *model.LogConfig
+	logRotator *logger.LogRotator
 }
 
 // NewLogService 创建日志服务
 func NewLogService() LogService {
 	return &logService{
 		logConfig: model.DefaultLogConfig(),
+	}
+}
+
+// NewLogServiceWithDataDir 创建日志服务（带数据目录）
+func NewLogServiceWithDataDir(dataDir string) LogService {
+	config := model.DefaultLogConfig()
+	config.Directory = dataDir + "/logs"
+
+	rotator := logger.NewLogRotator(config)
+	if err := rotator.Start(); err != nil {
+		plogger.Error("启动日志轮转器失败: %v", err)
+	}
+
+	return &logService{
+		logConfig:  config,
+		logRotator: rotator,
 	}
 }
 
@@ -65,8 +84,36 @@ func (s *logService) GetLogStats(startTime, endTime *time.Time) (*model.LogStats
 
 // GetTrafficLogs 查询流量日志
 func (s *logService) GetTrafficLogs(query *model.TrafficQuery) ([]*model.TrafficLog, int64, error) {
-	// 暂时返回空列表，实际实现需要从代理服务获取
-	return []*model.TrafficLog{}, 0, nil
+	// 将流量日志转换为TrafficLog格式
+	logQuery := &model.LogQuery{
+		Limit: query.Limit,
+	}
+
+	if !query.StartTime.IsZero() {
+		logQuery.StartTime = &query.StartTime
+	}
+	if !query.EndTime.IsZero() {
+		logQuery.EndTime = &query.EndTime
+	}
+
+	logs, err := logger.QueryLogs(context.Background(), s.logConfig, logQuery)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	result := make([]*model.TrafficLog, len(logs))
+	for i, log := range logs {
+		result[i] = &model.TrafficLog{
+			ID:         log.ID,
+			Timestamp:  log.Timestamp,
+			ClientIP:   log.ClientIP,
+			Method:     log.Method,
+			Path:       log.Path,
+			StatusCode: log.StatusCode,
+		}
+	}
+
+	return result, int64(len(result)), nil
 }
 
 // GetTrafficStats 获取流量统计
@@ -77,6 +124,14 @@ func (s *logService) GetTrafficStats(startTime, endTime *time.Time) (*model.LogS
 
 // ClearLogs 清理日志
 func (s *logService) ClearLogs(before *time.Time) error {
-	// 实现日志清理逻辑
+	// 暂时返回nil，后续实现
 	return nil
+}
+
+// AddLog 添加日志
+func (s *logService) AddLog(log model.RequestLog) {
+	if s.logRotator != nil {
+		s.logRotator.Write(log)
+	}
+	plogger.Info("添加流量日志: %s %s", log.Method, log.Path)
 }

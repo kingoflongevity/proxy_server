@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"proxy_server/internal/model"
+	"proxy_server/internal/service"
 	"proxy_server/pkg/broadcaster"
 	"proxy_server/pkg/logger"
 
@@ -19,11 +20,12 @@ import (
 
 // TrafficLogger 流量日志记录器
 type TrafficLogger struct {
-	config       *model.LogConfig
-	logBuffer    []model.RequestLog
-	bufferMutex  sync.Mutex
-	writeChan    chan model.RequestLog
-	stopChan     chan bool
+	config      *model.LogConfig
+	logBuffer   []model.RequestLog
+	bufferMutex sync.Mutex
+	writeChan   chan model.RequestLog
+	stopChan    chan bool
+	logService  service.LogService
 }
 
 var (
@@ -54,6 +56,11 @@ func NewTrafficLogger(config *model.LogConfig) *TrafficLogger {
 	return tl
 }
 
+// SetLogService 设置日志服务
+func (tl *TrafficLogger) SetLogService(ls service.LogService) {
+	tl.logService = ls
+}
+
 // Start 启动日志记录器
 func (tl *TrafficLogger) Start() {
 	if tl.config.Enabled {
@@ -75,7 +82,11 @@ func (tl *TrafficLogger) writeWorker() {
 
 	for {
 		select {
-		case log := <-tl.writeChan:
+		case log, ok := <-tl.writeChan:
+			if !ok {
+				tl.stopChan <- true
+				return
+			}
 			tl.bufferMutex.Lock()
 			tl.logBuffer = append(tl.logBuffer, log)
 			if len(tl.logBuffer) >= 100 {
@@ -92,19 +103,24 @@ func (tl *TrafficLogger) writeWorker() {
 	}
 }
 
-// flushBuffer 刷新缓冲区到文件
+// flushBuffer 刷新缓冲区
 func (tl *TrafficLogger) flushBuffer() {
 	if len(tl.logBuffer) == 0 {
 		return
 	}
 
-	// 追加模式写入
+	// 保存到日志服务
 	for _, log := range tl.logBuffer {
 		data, _ := json.Marshal(log)
 		logger.Info("TRAFFIC: %s", string(data))
-		
+
 		// 通过WebSocket推送日志到前端
 		broadcaster.BroadcastLog("INFO", fmt.Sprintf("[%s] %s %s - %d", log.Method, log.Path, log.ClientIP, log.StatusCode), "traffic")
+
+		// 保存到持久化存储
+		if tl.logService != nil {
+			tl.logService.AddLog(log)
+		}
 	}
 
 	tl.logBuffer = tl.logBuffer[:0]
@@ -115,7 +131,7 @@ func (tl *TrafficLogger) sanitize(value string) string {
 	if value == "" {
 		return ""
 	}
-	
+
 	lowerValue := strings.ToLower(value)
 	for _, sensitive := range tl.config.SensitiveWords {
 		if strings.Contains(lowerValue, sensitive) {
@@ -171,8 +187,8 @@ func TrafficLoggerMiddleware() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 		// 跳过健康检查和不需要记录的路径
-		if c.Request.URL.Path == "/health" || 
-		   strings.HasPrefix(c.Request.URL.Path, "/logs") {
+		if c.Request.URL.Path == "/health" ||
+			strings.HasPrefix(c.Request.URL.Path, "/logs") {
 			c.Next()
 			return
 		}
@@ -231,7 +247,7 @@ func TrafficLoggerMiddleware() gin.HandlerFunc {
 // bodyLogWriter 捕获响应体的Writer
 type bodyLogWriter struct {
 	gin.ResponseWriter
-	body      *bytes.Buffer
+	body       *bytes.Buffer
 	StatusCode int
 }
 
