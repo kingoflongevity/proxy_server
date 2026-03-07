@@ -190,12 +190,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
 import request from '@/api/request'
 import TopologyGraph from '@/components/TopologyGraph.vue'
-
-const route = useRoute()
 
 interface ClusterServer {
   id: string
@@ -260,29 +257,6 @@ onMounted(async () => {
   await fetchServers()
   await fetchTopology()
 })
-
-onUnmounted(() => {
-  // 清理所有对话框状态
-  showScanDialog.value = false
-  showAddServerDialog.value = false
-  showDeployDialog.value = false
-  scanning.value = false
-  deploying.value = false
-})
-
-// 监听路由变化，当离开当前页面时关闭所有对话框
-watch(
-  () => route.path,
-  (newPath, oldPath) => {
-    if (oldPath === '/cluster' && newPath !== '/cluster') {
-      showScanDialog.value = false
-      showAddServerDialog.value = false
-      showDeployDialog.value = false
-      scanning.value = false
-      deploying.value = false
-    }
-  }
-)
 
 async function fetchServers() {
   try {
@@ -445,6 +419,8 @@ function formatMemory(mb: number): string {
 <style lang="scss" scoped>
 .cluster {
   padding: 24px;
+  position: relative;
+  min-height: 100%;
 }
 
 .header-actions {
@@ -658,7 +634,7 @@ function formatMemory(mb: number): string {
 }
 
 .dialog-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -667,7 +643,7 @@ function formatMemory(mb: number): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .dialog {

@@ -96,8 +96,10 @@ async function navigateTo(path: string) {
  */
 watch(
   () => route.path,
-  () => {
-    routeKey.value++
+  (newPath, oldPath) => {
+    if (newPath !== oldPath) {
+      routeKey.value++
+    }
   }
 )
 
@@ -257,7 +259,7 @@ function formatSpeed(bytesPerSecond: number): string {
 
       <!-- 内容区 -->
       <main class="content">
-        <router-view :key="route.fullPath + routeKey" />
+        <router-view :key="routeKey" />
       </main>
     </div>
   </div>

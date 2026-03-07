@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, onMounted } from 'vue'
 import { useSubscriptionStore } from '@/stores'
 import type { CreateSubscriptionRequest, Subscription } from '@/types'
 
 const subscriptionStore = useSubscriptionStore()
-const route = useRoute()
 
 const showAddDialog = ref(false)
 const editingSubscription = ref<Subscription | null>(null)
@@ -21,22 +19,6 @@ const formData = ref<CreateSubscriptionRequest>({
 onMounted(async () => {
   await subscriptionStore.fetchSubscriptions()
 })
-
-onUnmounted(() => {
-  showAddDialog.value = false
-  editingSubscription.value = null
-})
-
-// 监听路由变化，当离开当前页面时关闭对话框
-watch(
-  () => route.path,
-  (newPath, oldPath) => {
-    if (oldPath === '/subscriptions' && newPath !== '/subscriptions') {
-      showAddDialog.value = false
-      editingSubscription.value = null
-    }
-  }
-)
 
 /**
  * 打开添加对话框
@@ -356,6 +338,8 @@ function getStatusColor(status: string): string {
   display: flex;
   flex-direction: column;
   gap: $spacing-lg;
+  position: relative;
+  min-height: 100%;
 }
 
 .header-actions {
@@ -530,7 +514,7 @@ function getStatusColor(status: string): string {
 
 // 对话框
 .dialog-overlay {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -539,7 +523,7 @@ function getStatusColor(status: string): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
+  z-index: 1000;
 }
 
 .dialog {
