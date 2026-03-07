@@ -81,7 +81,34 @@ func (p *SubscriptionParser) parseLine(line string) (*model.Node, error) {
 		return p.parseSSR(line)
 	}
 
-	return nil, fmt.Errorf("不支持的协议: %s", line[:20])
+	// 过滤掉分类节点和其他非代理节点
+	// 这些协议不是真正的代理节点，而是选择器、负载均衡等
+	ignoredProtocols := []string{
+		"selector://",
+		"urltest://",
+		"fallback://",
+		"loadbalance://",
+		"shadowsocksr://", // 已经用ssr://处理
+		"http://",
+		"https://",
+		"socks://",
+		"socks5://",
+	}
+	
+	for _, ignored := range ignoredProtocols {
+		if strings.HasPrefix(line, ignored) {
+			return nil, fmt.Errorf("忽略非代理节点: %s", ignored)
+		}
+	}
+
+	return nil, fmt.Errorf("不支持的协议: %s", line[:min(20, len(line))])
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
 
 // parseVLESS 解析VLESS链接

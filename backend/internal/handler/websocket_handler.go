@@ -231,6 +231,11 @@ func BroadcastNodeUpdate(nodeId string, status string, latency int) {
 	})
 }
 
+// BroadcastNode 广播节点更新（简化版）
+func BroadcastNode(nodeId, status string, latency int) {
+	BroadcastNodeUpdate(nodeId, status, latency)
+}
+
 func BroadcastSubscriptionUpdate(subscriptionId string, nodeCount int, status string) {
 	wsHub.Broadcast("subscription_update", map[string]interface{}{
 		"subscriptionId": subscriptionId,
@@ -238,6 +243,11 @@ func BroadcastSubscriptionUpdate(subscriptionId string, nodeCount int, status st
 		"status":         status,
 		"timestamp":      time.Now().Format(time.RFC3339),
 	})
+}
+
+// BroadcastSubscription 广播订阅更新（简化版）
+func BroadcastSubscription(subscriptionId string, nodeCount int, status string) {
+	BroadcastSubscriptionUpdate(subscriptionId, nodeCount, status)
 }
 
 func GetConnectedClients() int {

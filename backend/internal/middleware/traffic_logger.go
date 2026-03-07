@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"proxy_server/internal/model"
+	"proxy_server/pkg/broadcaster"
 	"proxy_server/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -101,6 +102,9 @@ func (tl *TrafficLogger) flushBuffer() {
 	for _, log := range tl.logBuffer {
 		data, _ := json.Marshal(log)
 		logger.Info("TRAFFIC: %s", string(data))
+		
+		// 通过WebSocket推送日志到前端
+		broadcaster.BroadcastLog("INFO", fmt.Sprintf("[%s] %s %s - %d", log.Method, log.Path, log.ClientIP, log.StatusCode), "traffic")
 	}
 
 	tl.logBuffer = tl.logBuffer[:0]

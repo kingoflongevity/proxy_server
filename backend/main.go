@@ -15,6 +15,7 @@ import (
 	"proxy_server/internal/repository"
 	"proxy_server/internal/router"
 	"proxy_server/internal/service"
+	"proxy_server/pkg/broadcaster"
 	"proxy_server/pkg/logger"
 
 	"github.com/gin-gonic/gin"
@@ -107,6 +108,11 @@ func main() {
 	logHandler := handler.NewLogHandler(logService)
 	clusterHandler := handler.NewClusterHandler(nil, nil)
 	wsHandler := handler.NewWebSocketHandler(logService)
+	
+	// 注册广播函数
+	broadcaster.RegisterLogBroadcast(handler.BroadcastLog)
+	broadcaster.RegisterNodeBroadcast(handler.BroadcastNode)
+	broadcaster.RegisterSubscriptionBroadcast(handler.BroadcastSubscription)
 	
 	// 设置路由
 	r := router.SetupRouter(subHandler, nodeHandler, ruleHandler, systemHandler, logHandler, clusterHandler, wsHandler)
