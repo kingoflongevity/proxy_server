@@ -53,17 +53,31 @@ type CoreManager struct {
 
 // NewCoreManager 创建内核管理器
 func NewCoreManager() *CoreManager {
-	// 优先使用项目目录下的core文件夹
-	execPath, err := os.Executable()
 	var installDir string
+
+	// 优先使用当前工作目录下的data/core
+	cwd, err := os.Getwd()
 	if err == nil {
-		installDir = filepath.Join(filepath.Dir(execPath), "data", "core")
-	} else {
-		// 回退到用户目录
-		installDir = filepath.Join(os.Getenv("APPDATA"), "proxy-server", "core")
-		if runtime.GOOS != "windows" {
-			installDir = filepath.Join(os.Getenv("HOME"), ".config", "proxy-server", "core")
+		cwdCore := filepath.Join(cwd, "data", "core")
+		if _, err := os.Stat(filepath.Join(cwdCore, "xray.exe")); err == nil {
+			installDir = cwdCore
 		}
+	}
+
+	// 如果当前目录没有，尝试可执行文件目录
+	if installDir == "" {
+		execPath, err := os.Executable()
+		if err == nil {
+			execCore := filepath.Join(filepath.Dir(execPath), "data", "core")
+			if _, err := os.Stat(filepath.Join(execCore, "xray.exe")); err == nil {
+				installDir = execCore
+			}
+		}
+	}
+
+	// 最后使用默认路径
+	if installDir == "" {
+		installDir = filepath.Join(cwd, "data", "core")
 	}
 
 	corePath := filepath.Join(installDir, "xray")

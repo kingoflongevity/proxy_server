@@ -31,6 +31,12 @@ type ProcessManager struct {
 	running     bool
 	currentNode *model.Node
 	logChan     chan string
+	statsClient *StatsClient
+	localPort   int
+	// 流量统计
+	lastUpload   int64
+	lastDownload int64
+	lastTime     time.Time
 }
 
 // NewProcessManager 创建进程管理器
@@ -49,6 +55,7 @@ func NewProcessManager(xrayPath string) *ProcessManager {
 // 参数：
 //   - node: 要连接的节点
 //   - localPort: 本地SOCKS5端口
+//
 // 返回：
 //   - error: 错误信息
 func (pm *ProcessManager) Start(node *model.Node, localPort int) error {
@@ -76,6 +83,7 @@ func (pm *ProcessManager) Start(node *model.Node, localPort int) error {
 	}
 
 	pm.configPath = configPath
+	pm.localPort = localPort
 
 	ctx, cancel := context.WithCancel(context.Background())
 	pm.cancel = cancel
@@ -98,6 +106,10 @@ func (pm *ProcessManager) Start(node *model.Node, localPort int) error {
 
 	pm.running = true
 	pm.currentNode = node
+	pm.lastTime = time.Now()
+
+	// 初始化统计客户端（API端口为localPort+2）
+	pm.statsClient = NewStatsClient(localPort + 2)
 
 	go pm.readOutput(stdout, "stdout")
 	go pm.readOutput(stderr, "stderr")
@@ -187,27 +199,27 @@ func (pm *ProcessManager) GetLogs() <-chan string {
 // Xray访问日志格式: 2024/01/01 12:00:00 [Info] [socks-in] 192.168.1.100:12345 accepted tcp:google.com:443
 func (pm *ProcessManager) readOutput(reader io.Reader, source string) {
 	scanner := bufio.NewScanner(reader)
-	
+
 	// 匹配Xray访问日志的正则表达式
 	accessLogPattern := regexp.MustCompile(`(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s+\[(\w+)\]\s+\[([^\]]+)\]\s+(.+)`)
 	// 匹配accepted/rejected行
 	trafficPattern := regexp.MustCompile(`(\d+\.\d+\.\d+\.\d+):(\d+)\s+(accepted|rejected)\s+(tcp|udp):([^\s]+)`)
-	
+
 	for scanner.Scan() {
 		line := scanner.Text()
-		
+
 		// 发送到日志通道
 		select {
 		case pm.logChan <- fmt.Sprintf("[%s] %s", source, line):
 		default:
 		}
-		
+
 		// 解析访问日志
 		if matches := accessLogPattern.FindStringSubmatch(line); matches != nil {
 			logLevel := matches[2]
 			inboundTag := matches[3]
 			message := matches[4]
-			
+
 			// 检查是否是流量日志
 			if trafficMatches := trafficPattern.FindStringSubmatch(message); trafficMatches != nil {
 				clientIP := trafficMatches[1]
@@ -215,18 +227,18 @@ func (pm *ProcessManager) readOutput(reader io.Reader, source string) {
 				action := trafficMatches[3]
 				protocol := trafficMatches[4]
 				target := trafficMatches[5]
-				
+
 				// 构建流量日志消息
-				trafficMsg := fmt.Sprintf("[%s] %s %s -> %s (%s)", 
-					inboundTag, 
-					action, 
+				trafficMsg := fmt.Sprintf("[%s] %s %s -> %s (%s)",
+					inboundTag,
+					action,
 					fmt.Sprintf("%s:%s", clientIP, clientPort),
 					target,
 					protocol)
-				
+
 				// 广播流量日志到前端
 				broadcaster.BroadcastLog(strings.ToUpper(logLevel), trafficMsg, "traffic")
-				
+
 				logger.Info("代理流量: %s", trafficMsg)
 			}
 		}
@@ -259,6 +271,7 @@ func (pm *ProcessManager) wait() {
 // 参数：
 //   - node: 要测试的节点
 //   - timeout: 超时时间（秒）
+//
 // 返回：
 //   - latency: 延迟（毫秒）
 //   - error: 错误信息
@@ -307,4 +320,68 @@ func (pm *ProcessManager) TestConnection(node *model.Node, timeout int) (int, er
 	}
 
 	return latency, nil
+}
+
+// TrafficInfo 流量信息
+type TrafficInfo struct {
+	UploadSpeed   int64 // 上传速度 (bytes/s)
+	DownloadSpeed int64 // 下载速度 (bytes/s)
+	UploadTotal   int64 // 总上传 (bytes)
+	DownloadTotal int64 // 总下载 (bytes)
+}
+
+// GetTraffic 获取流量统计
+func (pm *ProcessManager) GetTraffic() *TrafficInfo {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+
+	if !pm.running || pm.statsClient == nil {
+		return &TrafficInfo{}
+	}
+
+	// 获取SOCKS入站流量
+	socksStats, err := pm.statsClient.GetInboundTraffic("socks-in")
+	if err != nil {
+		logger.Debug("获取SOCKS流量失败: %v", err)
+		return &TrafficInfo{}
+	}
+
+	// 获取HTTP入站流量
+	httpStats, err := pm.statsClient.GetInboundTraffic("http-in")
+	if err != nil {
+		logger.Debug("获取HTTP流量失败: %v", err)
+	}
+
+	totalUpload := socksStats.Upload + httpStats.Upload
+	totalDownload := socksStats.Download + httpStats.Download
+
+	now := time.Now()
+	duration := now.Sub(pm.lastTime).Seconds()
+	if duration <= 0 {
+		duration = 1
+	}
+
+	// 计算速度
+	uploadSpeed := int64(float64(totalUpload-pm.lastUpload) / duration)
+	downloadSpeed := int64(float64(totalDownload-pm.lastDownload) / duration)
+
+	// 更新上次记录
+	pm.lastUpload = totalUpload
+	pm.lastDownload = totalDownload
+	pm.lastTime = now
+
+	// 防止负数
+	if uploadSpeed < 0 {
+		uploadSpeed = 0
+	}
+	if downloadSpeed < 0 {
+		downloadSpeed = 0
+	}
+
+	return &TrafficInfo{
+		UploadSpeed:   uploadSpeed,
+		DownloadSpeed: downloadSpeed,
+		UploadTotal:   totalUpload,
+		DownloadTotal: totalDownload,
+	}
 }

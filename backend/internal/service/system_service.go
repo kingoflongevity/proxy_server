@@ -33,20 +33,22 @@ func GetProxyMode() string {
 
 // systemService 系统服务实现
 type systemService struct {
-	systemRepo repository.SystemRepository
-	startTime  time.Time
-	version    string
+	systemRepo  repository.SystemRepository
+	nodeService NodeService
+	startTime   time.Time
+	version     string
 }
 
 var currentProxyMode = "rule"
 
 // NewSystemService 创建系统服务
-func NewSystemService(systemRepo repository.SystemRepository) SystemService {
+func NewSystemService(systemRepo repository.SystemRepository, nodeService NodeService) SystemService {
 	currentProxyMode = "rule"
 	return &systemService{
-		systemRepo: systemRepo,
-		startTime:  time.Now(),
-		version:    "1.0.0",
+		systemRepo:  systemRepo,
+		nodeService: nodeService,
+		startTime:   time.Now(),
+		version:     "1.0.0",
 	}
 }
 
@@ -174,13 +176,16 @@ func (s *systemService) GetConnectionStatus() (*model.ConnectionStatus, error) {
 		return nil, err
 	}
 
+	// 获取流量统计
+	traffic := s.nodeService.GetTraffic()
+
 	return &model.ConnectionStatus{
 		Connected:       status.Connected,
 		CurrentMode:     status.Mode,
-		UploadSpeed:     0,
-		DownloadSpeed:   0,
-		UploadTotal:     0,
-		DownloadTotal:   0,
+		UploadSpeed:     uint64(traffic.UploadSpeed),
+		DownloadSpeed:   uint64(traffic.DownloadSpeed),
+		UploadTotal:     uint64(traffic.UploadTotal),
+		DownloadTotal:   uint64(traffic.DownloadTotal),
 		ConnectionCount: 0,
 	}, nil
 }

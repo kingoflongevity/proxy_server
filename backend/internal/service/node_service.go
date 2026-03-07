@@ -26,6 +26,7 @@ type NodeService interface {
 	Select(id string) error
 	GetCurrentNode() *model.Node
 	GetStats(id string) (map[string]interface{}, error)
+	GetTraffic() *xray.TrafficInfo
 }
 
 // nodeService 节点服务实现
@@ -319,6 +320,11 @@ func (s *nodeService) GetStats(id string) (map[string]interface{}, error) {
 		"downloadTotal":   0,
 		"connectionCount": 0,
 	}, nil
+}
+
+// GetTraffic 获取流量统计
+func (s *nodeService) GetTraffic() *xray.TrafficInfo {
+	return s.processManager.GetTraffic()
 }
 
 // TestBatch 批量测试节点
