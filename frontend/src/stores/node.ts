@@ -238,6 +238,9 @@ export const useNodeStore = defineStore('node', () => {
       if (node) {
         currentNode.value = node
       }
+      // 刷新连接状态
+      const settingsStore = await import('./settings').then(m => m.useSettingsStore())
+      await settingsStore().fetchConnectionStatus()
     } catch (e: any) {
       error.value = e.message || '选择节点失败'
       throw e

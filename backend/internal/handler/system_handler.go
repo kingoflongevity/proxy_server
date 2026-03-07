@@ -2,6 +2,7 @@ package handler
 
 import (
 	"io"
+	"net"
 	"proxy_server/internal/model"
 	"proxy_server/internal/service"
 	"proxy_server/internal/xray"
@@ -217,4 +218,54 @@ func (h *SystemHandler) UploadCore(c *gin.Context) {
 
 	info, _ := h.coreManager.GetCoreInfo()
 	response.Success(c, info)
+}
+
+// GetLocalIPs 获取本机IP地址列表
+func (h *SystemHandler) GetLocalIPs(c *gin.Context) {
+	var ips []string
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		response.Error(c, 4000, "获取网络接口失败")
+		return
+	}
+
+	for _, iface := range interfaces {
+		// 跳过回环接口和未启用的接口
+		if iface.Flags&net.FlagLoopback != 0 || iface.Flags&net.FlagUp == 0 {
+			continue
+		}
+
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+
+			// 只返回IPv4地址
+			if ip != nil && ip.To4() != nil && !ip.IsLoopback() {
+				ips = append(ips, ip.String())
+			}
+		}
+	}
+
+	// 如果没有找到IP，返回默认值
+	if len(ips) == 0 {
+		ips = []string{"127.0.0.1"}
+	}
+
+	response.Success(c, gin.H{
+		"ips":        ips,
+		"primaryIP":  ips[0],
+		"socksPort":  10808,
+		"httpPort":   10809,
+		"mixedPort":  10810,
+	})
 }

@@ -270,14 +270,38 @@ func (s *nodeService) GetCurrentNode() *model.Node {
 	return nil
 }
 
-// Select 选择节点
+// Select 选择节点并启动代理连接
 func (s *nodeService) Select(id string) error {
+	// 先断开当前连接
+	if s.processManager.IsRunning() {
+		s.processManager.Stop()
+		if s.currentNode != nil {
+			s.currentNode.Connected = false
+			s.nodeRepo.Update(s.currentNode)
+		}
+	}
+
 	node, err := s.nodeRepo.GetByID(id)
 	if err != nil {
 		return err
 	}
 
+	// 启动代理连接
+	if err := s.processManager.Start(node, 10808); err != nil {
+		logger.Error("启动Xray进程失败: %v", err)
+		return errors.NewError(errors.NodeConnectFailed, err.Error())
+	}
+
 	s.currentNode = node
+	node.Connected = true
+	s.nodeRepo.Update(node)
+
+	status, _ := s.systemRepo.GetStatus()
+	status.Connected = true
+	status.CurrentNode = node
+	s.systemRepo.SaveStatus(status)
+
+	logger.Info("选择并连接节点成功: %s (SOCKS5: 0.0.0.0:10808, HTTP: 0.0.0.0:10809)", node.Name)
 	return nil
 }
 

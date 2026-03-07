@@ -15,6 +15,14 @@ interface CoreInfo {
   installed: boolean
 }
 
+interface LocalIPs {
+  ips: string[]
+  primaryIP: string
+  socksPort: number
+  httpPort: number
+  mixedPort: number
+}
+
 const coreInfo = ref<CoreInfo>({
   version: '',
   installPath: '',
@@ -22,6 +30,13 @@ const coreInfo = ref<CoreInfo>({
   installed: false,
 })
 const coreUpdating = ref(false)
+const localIPs = ref<LocalIPs>({
+  ips: [],
+  primaryIP: '',
+  socksPort: 10808,
+  httpPort: 10809,
+  mixedPort: 10810,
+})
 
 async function fetchCoreInfo() {
   try {
@@ -32,11 +47,28 @@ async function fetchCoreInfo() {
   }
 }
 
+async function fetchLocalIPs() {
+  try {
+    const data = await request.get<LocalIPs>('/system/local-ips')
+    localIPs.value = data as any
+  } catch (error) {
+    console.error('获取本机IP失败:', error)
+    localIPs.value = {
+      ips: ['127.0.0.1'],
+      primaryIP: '127.0.0.1',
+      socksPort: 10808,
+      httpPort: 10809,
+      mixedPort: 10810,
+    }
+  }
+}
+
 onMounted(async () => {
   await settingsStore.fetchSettings()
   await settingsStore.fetchSystemInfo()
   await settingsStore.fetchProxyMode()
   await fetchCoreInfo()
+  await fetchLocalIPs()
 })
 
 async function handleThemeChange(theme: Theme) {
@@ -341,6 +373,52 @@ function formatMemory(bytes: number): string {
 
     <!-- 网络设置 -->
     <div v-if="activeTab === 'network'" class="settings-section">
+      <!-- 服务器地址信息 -->
+      <div class="setting-item server-info">
+        <div class="setting-label">
+          <h4>服务器地址</h4>
+          <p>其他设备可通过以下地址连接本代理服务</p>
+        </div>
+        <div class="server-addresses">
+          <div v-for="ip in localIPs.ips" :key="ip" class="address-item">
+            <span class="address-ip">{{ ip }}</span>
+            <span class="address-label">{{ ip === '127.0.0.1' ? '本地' : '局域网' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 代理端口信息 -->
+      <div class="setting-item">
+        <div class="setting-label">
+          <h4>代理端口</h4>
+          <p>代理服务监听的端口</p>
+        </div>
+        <div class="proxy-ports">
+          <div class="port-item">
+            <span class="port-label">SOCKS5</span>
+            <span class="port-value">{{ localIPs.socksPort }}</span>
+          </div>
+          <div class="port-item">
+            <span class="port-label">HTTP</span>
+            <span class="port-value">{{ localIPs.httpPort }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 使用说明 -->
+      <div class="setting-item usage-guide">
+        <div class="setting-label">
+          <h4>使用说明</h4>
+        </div>
+        <div class="guide-content">
+          <p>在其他设备上配置代理：</p>
+          <ul>
+            <li>SOCKS5代理: <code>{{ localIPs.primaryIP }}:{{ localIPs.socksPort }}</code></li>
+            <li>HTTP代理: <code>{{ localIPs.primaryIP }}:{{ localIPs.httpPort }}</code></li>
+          </ul>
+        </div>
+      </div>
+
       <div class="setting-item">
         <div class="setting-label">
           <h4>允许局域网连接</h4>
@@ -862,6 +940,109 @@ select {
 
   .button-group {
     flex-direction: column;
+  }
+}
+
+// 服务器地址样式
+.server-info {
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.server-addresses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.address-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-base;
+}
+
+.address-ip {
+  font-family: monospace;
+  font-size: $font-size-sm;
+  color: var(--text-primary);
+}
+
+.address-label {
+  font-size: $font-size-xs;
+  padding: 2px 6px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: $border-radius-sm;
+}
+
+// 代理端口样式
+.proxy-ports {
+  display: flex;
+  gap: $spacing-lg;
+}
+
+.port-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: $spacing-md $spacing-lg;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: $border-radius-base;
+}
+
+.port-label {
+  font-size: $font-size-xs;
+  color: var(--text-secondary);
+  margin-bottom: $spacing-xs;
+}
+
+.port-value {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: var(--primary-color);
+  font-family: monospace;
+}
+
+// 使用说明样式
+.usage-guide {
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.guide-content {
+  padding: $spacing-md;
+  background-color: var(--bg-tertiary);
+  border-radius: $border-radius-base;
+  border: 1px solid var(--border-color);
+
+  p {
+    margin-bottom: $spacing-sm;
+    color: var(--text-primary);
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    padding: $spacing-xs 0;
+    color: var(--text-secondary);
+    font-size: $font-size-sm;
+
+    code {
+      background-color: var(--bg-secondary);
+      padding: 2px 6px;
+      border-radius: $border-radius-sm;
+      font-family: monospace;
+      color: var(--primary-color);
+    }
   }
 }
 </style>
