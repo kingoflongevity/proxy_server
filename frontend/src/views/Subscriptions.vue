@@ -530,7 +530,7 @@ function getStatusColor(status: string): string {
 
 // 对话框
 .dialog-overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -539,7 +539,7 @@ function getStatusColor(status: string): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
+  z-index: 100;
 }
 
 .dialog {

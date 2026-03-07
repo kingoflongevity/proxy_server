@@ -658,7 +658,7 @@ function formatMemory(mb: number): string {
 }
 
 .dialog-overlay {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
@@ -667,7 +667,7 @@ function formatMemory(mb: number): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+  z-index: 100;
 }
 
 .dialog {
