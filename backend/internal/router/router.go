@@ -15,6 +15,7 @@ func SetupRouter(
 	systemHandler *handler.SystemHandler,
 	logHandler *handler.LogHandler,
 	clusterHandler *handler.ClusterHandler,
+	wsHandler *handler.WebSocketHandler,
 ) *gin.Engine {
 	r := gin.New()
 	
@@ -36,6 +37,13 @@ func SetupRouter(
 	r.Static("/assets", "./static/assets")
 	r.NoRoute(func(c *gin.Context) {
 		c.File("./static/index.html")
+	})
+	
+	// WebSocket路由
+	r.GET("/ws", func(c *gin.Context) {
+		if wsHandler != nil {
+			wsHandler.HandleWebSocket(c)
+		}
 	})
 	
 	api := r.Group("/api")

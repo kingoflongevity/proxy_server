@@ -22,6 +22,7 @@ type SubscriptionService interface {
 	Update(id string, req *model.SubscriptionUpdateRequest) (*model.Subscription, error)
 	Delete(id string) error
 	Refresh(id string) error
+	RefreshAndGetNodes(id string) ([]*model.Node, error)
 }
 
 // subscriptionService 订阅服务实现
@@ -152,9 +153,15 @@ func (s *subscriptionService) Delete(id string) error {
 // Refresh 刷新订阅节点
 // 使用Xray订阅解析器解析节点，支持v26.2.6新特性
 func (s *subscriptionService) Refresh(id string) error {
+	_, err := s.RefreshAndGetNodes(id)
+	return err
+}
+
+// RefreshAndGetNodes 刷新订阅并返回节点列表
+func (s *subscriptionService) RefreshAndGetNodes(id string) ([]*model.Node, error) {
 	subscription, err := s.GetByID(id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	content, err := s.fetchSubscription(subscription.URL)
@@ -162,7 +169,7 @@ func (s *subscriptionService) Refresh(id string) error {
 		logger.Error("获取订阅内容失败: %v", err)
 		subscription.Status = "error"
 		s.subRepo.Update(subscription)
-		return errors.NewError(errors.SubscriptionFetchFailed, err.Error())
+		return nil, errors.NewError(errors.SubscriptionFetchFailed, err.Error())
 	}
 
 	nodes, err := s.parser.Parse(content)
@@ -170,12 +177,12 @@ func (s *subscriptionService) Refresh(id string) error {
 		logger.Error("解析订阅节点失败: %v", err)
 		subscription.Status = "error"
 		s.subRepo.Update(subscription)
-		return errors.NewError(errors.SubscriptionParseFailed, err.Error())
+		return nil, errors.NewError(errors.SubscriptionParseFailed, err.Error())
 	}
 
 	if err := s.nodeRepo.DeleteBySubscriptionID(id); err != nil {
 		logger.Error("删除旧节点失败: %v", err)
-		return errors.NewError(errors.DataSaveError, err.Error())
+		return nil, errors.NewError(errors.DataSaveError, err.Error())
 	}
 
 	for _, node := range nodes {
@@ -194,7 +201,7 @@ func (s *subscriptionService) Refresh(id string) error {
 	}
 
 	logger.Info("刷新订阅成功: %s, 节点数: %d", subscription.Name, len(nodes))
-	return nil
+	return nodes, nil
 }
 
 // fetchSubscription 获取订阅内容

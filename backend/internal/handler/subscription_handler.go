@@ -120,7 +120,9 @@ func (h *SubscriptionHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	if err := h.subService.Refresh(id); err != nil {
+	// 刷新订阅并获取新节点
+	nodes, err := h.subService.RefreshAndGetNodes(id)
+	if err != nil {
 		response.Error(c, 1001, err.Error())
 		return
 	}
@@ -132,8 +134,23 @@ func (h *SubscriptionHandler) Refresh(c *gin.Context) {
 		return
 	}
 
+	// 通过WebSocket广播订阅更新
+	BroadcastSubscriptionUpdate(id, subscription.NodeCount, subscription.Status)
+
+	// 通过WebSocket广播节点列表更新
+	for _, node := range nodes {
+		status := "disabled"
+		if node.Enabled {
+			status = "available"
+		}
+		BroadcastNodeUpdate(node.ID, status, node.Latency)
+	}
+
 	response.Success(c, gin.H{
-		"count": subscription.NodeCount,
+		"count":      subscription.NodeCount,
+		"nodes":      nodes,
+		"status":     subscription.Status,
+		"lastUpdate": subscription.LastUpdate,
 	})
 }
 

@@ -19,110 +19,129 @@
       </div>
     </div>
 
-    <!-- 统计卡片 -->
-    <div class="stats-cards" v-if="logStore.stats">
-      <div class="stat-card">
-        <div class="stat-label">总请求数</div>
-        <div class="stat-value">{{ logStore.stats.totalRequests }}</div>
+    <!-- 标签页切换 -->
+    <div class="tabs">
+      <button class="tab" :class="{ active: activeTab === 'history' }" @click="activeTab = 'history'">
+        历史日志
+      </button>
+      <button class="tab" :class="{ active: activeTab === 'realtime' }" @click="activeTab = 'realtime'">
+        实时日志
+        <span class="realtime-indicator" v-if="wsConnected"></span>
+      </button>
+    </div>
+
+    <!-- 历史日志 -->
+    <div v-show="activeTab === 'history'">
+      <!-- 统计卡片 -->
+      <div class="stats-cards" v-if="logStore.stats">
+        <div class="stat-card">
+          <div class="stat-label">总请求数</div>
+          <div class="stat-value">{{ logStore.stats.totalRequests }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">总流量</div>
+          <div class="stat-value">{{ formatBytes(logStore.stats.totalTraffic) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">上传流量</div>
+          <div class="stat-value">{{ formatBytes(logStore.stats.uploadBytes) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">下载流量</div>
+          <div class="stat-value">{{ formatBytes(logStore.stats.downloadBytes) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">平均响应时间</div>
+          <div class="stat-value">{{ logStore.stats.avgResponseTimeMs }}ms</div>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">总流量</div>
-        <div class="stat-value">{{ formatBytes(logStore.stats.totalTraffic) }}</div>
+
+      <!-- 筛选 -->
+      <div class="filter-bar">
+        <div class="filter-item">
+          <label>时间范围：</label>
+          <select v-model="filters.timeRange" @change="handleFilterChange">
+            <option value="">全部</option>
+            <option value="today">今天</option>
+            <option value="week">本周</option>
+            <option value="month">本月</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>方法：</label>
+          <select v-model="filters.method" @change="handleFilterChange">
+            <option value="">全部</option>
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label>状态码：</label>
+          <input type="number" v-model.number="filters.statusCode" @change="handleFilterChange" placeholder="如：200" />
+        </div>
+        <div class="filter-item">
+          <label>关键词：</label>
+          <input type="text" v-model="filters.keyword" @input="handleFilterChange" placeholder="URL或错误信息" />
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">上传流量</div>
-        <div class="stat-value">{{ formatBytes(logStore.stats.uploadBytes) }}</div>
+
+      <!-- 日志列表 -->
+      <div class="logs-table-container">
+        <table class="logs-table">
+          <thead>
+            <tr>
+              <th>时间</th>
+              <th>客户端IP</th>
+              <th>方法</th>
+              <th>URL</th>
+              <th>状态码</th>
+              <th>响应时间</th>
+              <th>响应大小</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-if="logStore.loading">
+              <td colspan="8" class="loading-cell">加载中...</td>
+            </tr>
+            <tr v-else-if="logStore.logs.length === 0">
+              <td colspan="8" class="empty-cell">暂无日志</td>
+            </tr>
+            <tr v-for="log in logStore.logs" :key="log.id">
+              <td>{{ formatTime(log.timestamp) }}</td>
+              <td>{{ log.clientIp }}</td>
+              <td>
+                <span class="method-badge" :class="log.method.toLowerCase()">{{ log.method }}</span>
+              </td>
+              <td class="url-cell" :title="log.domain + log.path">{{ log.domain }}{{ log.path }}</td>
+              <td>
+                <span class="status-badge" :class="getStatusClass(log.statusCode)">
+                  {{ log.statusCode }}
+                </span>
+              </td>
+              <td>{{ log.durationMs }}ms</td>
+              <td>{{ formatBytes(log.uploadBytes + log.downloadBytes) }}</td>
+              <td>
+                <button class="btn-link" @click="showLogDetail(log)">详情</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">下载流量</div>
-        <div class="stat-value">{{ formatBytes(logStore.stats.downloadBytes) }}</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">平均响应时间</div>
-        <div class="stat-value">{{ logStore.stats.avgResponseTimeMs }}ms</div>
+
+      <!-- 分页 -->
+      <div class="pagination" v-if="logStore.total > pageSize">
+        <button class="btn" :disabled="page <= 1" @click="changePage(-1)">上一页</button>
+        <span class="page-info">{{ page }} / {{ Math.ceil(logStore.total / pageSize) }}</span>
+        <button class="btn" :disabled="page >= Math.ceil(logStore.total / pageSize)" @click="changePage(1)">下一页</button>
       </div>
     </div>
 
-    <!-- 筛选 -->
-    <div class="filter-bar">
-      <div class="filter-item">
-        <label>时间范围：</label>
-        <select v-model="filters.timeRange" @change="handleFilterChange">
-          <option value="">全部</option>
-          <option value="today">今天</option>
-          <option value="week">本周</option>
-          <option value="month">本月</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <label>方法：</label>
-        <select v-model="filters.method" @change="handleFilterChange">
-          <option value="">全部</option>
-          <option value="GET">GET</option>
-          <option value="POST">POST</option>
-          <option value="PUT">PUT</option>
-          <option value="DELETE">DELETE</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <label>状态码：</label>
-        <input type="number" v-model.number="filters.statusCode" @change="handleFilterChange" placeholder="如：200" />
-      </div>
-      <div class="filter-item">
-        <label>关键词：</label>
-        <input type="text" v-model="filters.keyword" @input="handleFilterChange" placeholder="URL或错误信息" />
-      </div>
-    </div>
-
-    <!-- 日志列表 -->
-    <div class="logs-table-container">
-      <table class="logs-table">
-        <thead>
-          <tr>
-            <th>时间</th>
-            <th>客户端IP</th>
-            <th>方法</th>
-            <th>URL</th>
-            <th>状态码</th>
-            <th>响应时间</th>
-            <th>响应大小</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-if="logStore.loading">
-            <td colspan="8" class="loading-cell">加载中...</td>
-          </tr>
-          <tr v-else-if="logStore.logs.length === 0">
-            <td colspan="8" class="empty-cell">暂无日志</td>
-          </tr>
-          <tr v-for="log in logStore.logs" :key="log.id">
-            <td>{{ formatTime(log.timestamp) }}</td>
-            <td>{{ log.clientIp }}</td>
-            <td>
-              <span class="method-badge" :class="log.method.toLowerCase()">{{ log.method }}</span>
-            </td>
-            <td class="url-cell" :title="log.domain + log.path">{{ log.domain }}{{ log.path }}</td>
-            <td>
-              <span class="status-badge" :class="getStatusClass(log.statusCode)">
-                {{ log.statusCode }}
-              </span>
-            </td>
-            <td>{{ log.durationMs }}ms</td>
-            <td>{{ formatBytes(log.uploadBytes + log.downloadBytes) }}</td>
-            <td>
-              <button class="btn-link" @click="showLogDetail(log)">详情</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 分页 -->
-    <div class="pagination" v-if="logStore.total > pageSize">
-      <button class="btn" :disabled="page <= 1" @click="changePage(-1)">上一页</button>
-      <span class="page-info">{{ page }} / {{ Math.ceil(logStore.total / pageSize) }}</span>
-      <button class="btn" :disabled="page >= Math.ceil(logStore.total / pageSize)" @click="changePage(1)">下一页</button>
+    <!-- 实时日志 -->
+    <div v-show="activeTab === 'realtime'" class="realtime-container">
+      <RealtimeLogs />
     </div>
 
     <!-- 日志详情弹窗 -->
@@ -186,10 +205,14 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useLogStore } from '@/stores/traffic'
+import { useWebSocket } from '@/services/websocket'
 import type { TrafficLog } from '@/api/traffic'
+import RealtimeLogs from '@/components/RealtimeLogs.vue'
 
 const logStore = useLogStore()
+const { connected: wsConnected } = useWebSocket()
 
+const activeTab = ref('history')
 const page = ref(1)
 const pageSize = 20
 const selectedLog = ref<TrafficLog | null>(null)
@@ -357,6 +380,53 @@ function getStatusClass(status: number): string {
   height: 16px;
 }
 
+.tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tab {
+  padding: 12px 24px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+
+  &.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
+}
+
+.realtime-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--success-color);
+  margin-left: 8px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 .stats-cards {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -510,6 +580,11 @@ function getStatusClass(status: number): string {
   color: var(--text-secondary);
 }
 
+.realtime-container {
+  height: calc(100vh - 300px);
+  min-height: 500px;
+}
+
 .modal {
   position: fixed;
   top: 0;
@@ -566,21 +641,5 @@ function getStatusClass(status: number): string {
     color: var(--text-secondary);
     margin-right: 8px;
   }
-
-  .error-text {
-    color: var(--error-color);
-  }
-}
-
-.code-block {
-  background: var(--bg-tertiary);
-  padding: 12px;
-  border-radius: 6px;
-  color: var(--text-primary);
-  font-size: 12px;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-all;
-  border: 1px solid var(--border-color);
 }
 </style>

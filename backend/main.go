@@ -106,9 +106,10 @@ func main() {
 	systemHandler := handler.NewSystemHandler(systemService)
 	logHandler := handler.NewLogHandler(logService)
 	clusterHandler := handler.NewClusterHandler(nil, nil)
+	wsHandler := handler.NewWebSocketHandler(logService)
 	
 	// 设置路由
-	r := router.SetupRouter(subHandler, nodeHandler, ruleHandler, systemHandler, logHandler, clusterHandler)
+	r := router.SetupRouter(subHandler, nodeHandler, ruleHandler, systemHandler, logHandler, clusterHandler, wsHandler)
 	
 	// 创建HTTP服务器
 	srv := &http.Server{
