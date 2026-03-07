@@ -26,22 +26,22 @@ type WebSocketMessage struct {
 }
 
 type LogEntry struct {
-	Timestamp   string `json:"timestamp"`
-	Level       string `json:"level"`
-	Message     string `json:"message"`
-	Source      string `json:"source"`
+	Timestamp    string `json:"timestamp"`
+	Level        string `json:"level"`
+	Message      string `json:"message"`
+	Source       string `json:"source"`
 	ConnectionID string `json:"connectionId,omitempty"`
 }
 
 type ConnectionInfo struct {
-	ID           string `json:"id"`
-	Protocol     string `json:"protocol"`
-	SourceIP     string `json:"sourceIp"`
-	DestHost     string `json:"destHost"`
-	DestPort     int    `json:"destPort"`
-	UploadBytes  int64  `json:"uploadBytes"`
-	DownloadBytes int64 `json:"downloadBytes"`
-	StartTime    string `json:"startTime"`
+	ID            string `json:"id"`
+	Protocol      string `json:"protocol"`
+	SourceIP      string `json:"sourceIp"`
+	DestHost      string `json:"destHost"`
+	DestPort      int    `json:"destPort"`
+	UploadBytes   int64  `json:"uploadBytes"`
+	DownloadBytes int64  `json:"downloadBytes"`
+	StartTime     string `json:"startTime"`
 }
 
 type WebSocketClient struct {
@@ -219,18 +219,23 @@ func BroadcastDisconnection(id string) {
 
 func BroadcastTrafficUpdate(connectionId string, upload, download int64) {
 	wsHub.Broadcast("traffic", map[string]interface{}{
-		"connectionId":   connectionId,
-		"uploadBytes":    upload,
-		"downloadBytes":  download,
-		"timestamp":      time.Now().Format(time.RFC3339),
+		"connectionId":  connectionId,
+		"uploadBytes":   upload,
+		"downloadBytes": download,
+		"timestamp":     time.Now().Format(time.RFC3339),
 	})
+}
+
+// BroadcastTraffic 广播流量日志
+func BroadcastTraffic(log interface{}) {
+	wsHub.Broadcast("traffic", log)
 }
 
 func BroadcastNodeUpdate(nodeId string, status string, latency int) {
 	wsHub.Broadcast("node_update", map[string]interface{}{
-		"nodeId":   nodeId,
-		"status":   status,
-		"latency":  latency,
+		"nodeId":    nodeId,
+		"status":    status,
+		"latency":   latency,
 		"timestamp": time.Now().Format(time.RFC3339),
 	})
 }

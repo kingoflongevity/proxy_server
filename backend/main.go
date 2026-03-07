@@ -13,6 +13,7 @@ import (
 	"proxy_server/internal/config"
 	"proxy_server/internal/handler"
 	"proxy_server/internal/middleware"
+	"proxy_server/internal/model"
 	"proxy_server/internal/repository"
 	"proxy_server/internal/router"
 	"proxy_server/internal/service"
@@ -103,6 +104,11 @@ func main() {
 
 	// 设置流量日志中间件的日志服务
 	middleware.GetTrafficLogger().SetLogService(logService)
+
+	// 设置流量广播函数
+	middleware.SetBroadcastTrafficFunc(func(log model.RequestLog) {
+		handler.BroadcastTraffic(log)
+	})
 
 	// 初始化Handler层
 	subHandler := handler.NewSubscriptionHandler(subService)
