@@ -52,11 +52,17 @@ func (s *subscriptionService) Create(req *model.SubscriptionCreateRequest) (*mod
 		subscriptionType = "mixed"
 	}
 
+	parseFormat := req.ParseFormat
+	if parseFormat == "" {
+		parseFormat = model.ParseFormatAuto
+	}
+
 	subscription := &model.Subscription{
 		ID:             utils.GenerateID(),
 		Name:           req.Name,
 		URL:            req.URL,
 		Type:           subscriptionType,
+		ParseFormat:    parseFormat,
 		Status:         "active",
 		AutoUpdate:     req.AutoUpdate,
 		UpdateInterval: req.UpdateInterval,
@@ -113,6 +119,9 @@ func (s *subscriptionService) Update(id string, req *model.SubscriptionUpdateReq
 	}
 	if req.Type != "" {
 		subscription.Type = req.Type
+	}
+	if req.ParseFormat != "" {
+		subscription.ParseFormat = req.ParseFormat
 	}
 	subscription.AutoUpdate = req.AutoUpdate
 	if req.UpdateInterval > 0 {
@@ -172,7 +181,7 @@ func (s *subscriptionService) RefreshAndGetNodes(id string) ([]*model.Node, erro
 		return nil, errors.NewError(errors.SubscriptionFetchFailed, err.Error())
 	}
 
-	nodes, err := s.parser.Parse(content)
+	nodes, err := s.parser.ParseWithFormat(content, subscription.ParseFormat)
 	if err != nil {
 		logger.Error("解析订阅节点失败: %v", err)
 		subscription.Status = "error"

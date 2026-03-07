@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useSubscriptionStore } from '@/stores'
-import type { CreateSubscriptionRequest, Subscription } from '@/types'
+import type { CreateSubscriptionRequest, Subscription, ParseFormat } from '@/types'
+import { PARSE_FORMAT_OPTIONS } from '@/types'
 
 const subscriptionStore = useSubscriptionStore()
 
@@ -12,8 +13,17 @@ const formData = ref<CreateSubscriptionRequest>({
   name: '',
   url: '',
   type: 'mixed',
+  parseFormat: 'auto',
   autoUpdate: true,
   updateInterval: 24,
+})
+
+/**
+ * 获取选中格式的描述
+ */
+const selectedFormatDescription = computed(() => {
+  const option = PARSE_FORMAT_OPTIONS.find(opt => opt.value === formData.value.parseFormat)
+  return option?.description || ''
 })
 
 onMounted(async () => {
@@ -30,6 +40,7 @@ function openAddDialog() {
     name: '',
     url: '',
     type: 'mixed',
+    parseFormat: 'auto',
     autoUpdate: true,
     updateInterval: 24,
   }
@@ -46,6 +57,7 @@ function openEditDialog(subscription: Subscription) {
     name: subscription.name,
     url: subscription.url,
     type: subscription.type,
+    parseFormat: subscription.parseFormat || 'auto',
     autoUpdate: subscription.autoUpdate,
     updateInterval: subscription.updateInterval,
   }
@@ -133,6 +145,15 @@ function getStatusColor(status: string): string {
     error: 'error',
   }
   return colorMap[status] || 'secondary'
+}
+
+/**
+ * 获取解析格式标签
+ */
+function getParseFormatLabel(format: ParseFormat | undefined): string {
+  if (!format) return '自动检测'
+  const option = PARSE_FORMAT_OPTIONS.find(opt => opt.value === format)
+  return option?.label || format
 }
 </script>
 
@@ -231,6 +252,10 @@ function getStatusColor(status: string): string {
             <span class="value">{{ (subscription.type || 'unknown').toUpperCase() }}</span>
           </div>
           <div class="info-row">
+            <span class="label">解析格式:</span>
+            <span class="value">{{ getParseFormatLabel(subscription.parseFormat) }}</span>
+          </div>
+          <div class="info-row">
             <span class="label">节点数:</span>
             <span class="value">{{ subscription.nodeCount }}</span>
           </div>
@@ -315,6 +340,18 @@ function getStatusColor(status: string): string {
               <option value="trojan">Trojan</option>
               <option value="hysteria">Hysteria</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label>解析格式</label>
+            <select v-model="formData.parseFormat">
+              <option v-for="option in PARSE_FORMAT_OPTIONS" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <div v-if="selectedFormatDescription" class="format-description">
+              {{ selectedFormatDescription }}
+            </div>
           </div>
 
           <div class="form-group">
@@ -632,6 +669,15 @@ function getStatusColor(status: string): string {
       width: auto;
     }
   }
+}
+
+.format-description {
+  margin-top: $spacing-xs;
+  padding: $spacing-xs $spacing-sm;
+  background-color: var(--bg-tertiary);
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+  color: var(--text-secondary);
 }
 
 .dialog-footer {

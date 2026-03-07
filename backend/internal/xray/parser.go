@@ -23,7 +23,73 @@ func NewSubscriptionParser() *SubscriptionParser {
 	return &SubscriptionParser{}
 }
 
-// Parse 解析订阅内容
+// ParseWithFormat 按指定格式解析订阅内容
+// format: 解析格式，auto表示自动检测
+func (p *SubscriptionParser) ParseWithFormat(content string, format model.ParseFormat) ([]*model.Node, error) {
+	// 如果指定了具体格式，则只使用该格式解析
+	switch format {
+	case model.ParseFormatClash:
+		return p.parseClashConfig(content)
+	case model.ParseFormatSurge:
+		decoded, _ := p.decodeContent(content)
+		return p.parseSurgeConfig(decoded)
+	case model.ParseFormatQuantumult:
+		decoded, _ := p.decodeContent(content)
+		return p.parseQuantumultConfig(decoded)
+	case model.ParseFormatSSD:
+		return p.parseSSDConfig(content)
+	case model.ParseFormatBase64:
+		decoded, _ := p.decodeContent(content)
+		return p.parseNodeLinks(decoded)
+	case model.ParseFormatAuto, "":
+		return p.Parse(content)
+	default:
+		return p.Parse(content)
+	}
+}
+
+// decodeContent 解码base64内容
+func (p *SubscriptionParser) decodeContent(content string) (string, error) {
+	decoded, err := base64.StdEncoding.DecodeString(content)
+	if err != nil {
+		decoded, err = base64.RawURLEncoding.DecodeString(content)
+		if err != nil {
+			return content, nil
+		}
+	}
+	return string(decoded), nil
+}
+
+// parseNodeLinks 解析节点链接列表
+func (p *SubscriptionParser) parseNodeLinks(content string) ([]*model.Node, error) {
+	lines := strings.Split(content, "\n")
+	var nodes []*model.Node
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		node, err := p.parseLine(line)
+		if err != nil {
+			logger.Debug("解析行失败: %v", err)
+			continue
+		}
+
+		if node != nil {
+			nodes = append(nodes, node)
+		}
+	}
+
+	if len(nodes) == 0 {
+		return nil, fmt.Errorf("未解析到有效节点")
+	}
+
+	return nodes, nil
+}
+
+// Parse 解析订阅内容（自动检测格式）
 // 支持多种格式：
 // - Base64编码的节点列表
 // - Clash配置文件
