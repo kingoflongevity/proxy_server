@@ -549,3 +549,25 @@ func (h *ClusterHandler) GetTopology(c *gin.Context) {
 		"connections": connections,
 	})
 }
+
+// GetNetworkSegment 获取当前网段
+func (h *ClusterHandler) GetNetworkSegment(c *gin.Context) {
+	networks, err := service.GetLocalNetwork()
+	if err != nil {
+		response.Error(c, 400, err.Error())
+		return
+	}
+
+	// 返回第一个网段作为默认扫描范围
+	var cidr string
+	if len(networks) > 0 {
+		cidr = networks[0]
+	} else {
+		cidr = "192.168.1.0/24"
+	}
+
+	response.Success(c, gin.H{
+		"cidr":     cidr,
+		"networks": networks,
+	})
+}

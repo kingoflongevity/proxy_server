@@ -74,6 +74,7 @@ const selectedServer = ref<ClusterServer | null>(null)
 onMounted(async () => {
   await fetchServers()
   await fetchTopology()
+  await getCurrentNetworkSegment()
 })
 
 async function fetchServers() {
@@ -98,6 +99,20 @@ async function fetchTopology() {
     }))
   } catch (error) {
     console.error('获取拓扑失败:', error)
+  }
+}
+
+async function getCurrentNetworkSegment() {
+  try {
+    const data = await request.get<any>('/cluster/network-segment')
+    const segment = data as any
+    if (segment && segment.cidr) {
+      scanForm.value.cidr = segment.cidr
+    }
+  } catch (error) {
+    console.error('获取当前网段失败:', error)
+    // 设置默认值
+    scanForm.value.cidr = '192.168.1.0/24'
   }
 }
 

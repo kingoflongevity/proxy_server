@@ -146,6 +146,7 @@ func SetupRouter(
 				cluster.GET("/scan/:id", clusterHandler.GetScanTask)
 				cluster.POST("/scan/:id/cancel", clusterHandler.CancelScan)
 				cluster.POST("/scan/quick", clusterHandler.QuickScan)
+				cluster.GET("/network-segment", clusterHandler.GetNetworkSegment)
 				
 				// 部署管理
 				cluster.POST("/deploy", clusterHandler.DeployProxy)
