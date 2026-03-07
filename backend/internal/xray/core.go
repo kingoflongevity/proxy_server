@@ -43,9 +43,17 @@ type CoreManager struct {
 
 // NewCoreManager 创建内核管理器
 func NewCoreManager() *CoreManager {
-	installDir := filepath.Join(os.Getenv("APPDATA"), "proxy-server", "core")
-	if runtime.GOOS != "windows" {
-		installDir = filepath.Join(os.Getenv("HOME"), ".config", "proxy-server", "core")
+	// 优先使用项目目录下的core文件夹
+	execPath, err := os.Executable()
+	var installDir string
+	if err == nil {
+		installDir = filepath.Join(filepath.Dir(execPath), "data", "core")
+	} else {
+		// 回退到用户目录
+		installDir = filepath.Join(os.Getenv("APPDATA"), "proxy-server", "core")
+		if runtime.GOOS != "windows" {
+			installDir = filepath.Join(os.Getenv("HOME"), ".config", "proxy-server", "core")
+		}
 	}
 
 	corePath := filepath.Join(installDir, "xray")
