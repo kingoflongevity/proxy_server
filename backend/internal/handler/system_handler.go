@@ -182,11 +182,40 @@ func (h *SystemHandler) GetCoreInfo(c *gin.Context) {
 	response.Success(c, info)
 }
 
+// GetCoreVersions 获取可用版本列表
+func (h *SystemHandler) GetCoreVersions(c *gin.Context) {
+	versions, err := h.coreManager.GetVersionList()
+	if err != nil {
+		response.Error(c, 4000, err.Error())
+		return
+	}
+
+	response.Success(c, versions)
+}
+
 // UpdateCore 更新内核（从官方下载）
 func (h *SystemHandler) UpdateCore(c *gin.Context) {
-	err := h.coreManager.DownloadCore(func(progress int) {
-		// 可以通过 WebSocket 推送进度，这里简化处理
-	})
+	var req struct {
+		Version string `json:"version"` // 指定版本，为空则下载最新
+		OS      string `json:"os"`      // 目标操作系统
+		Arch    string `json:"arch"`    // 目标架构
+	}
+	c.ShouldBindJSON(&req)
+
+	// 设置目标平台
+	h.coreManager.SetTargetPlatform(req.OS, req.Arch)
+
+	var err error
+	if req.Version != "" {
+		err = h.coreManager.DownloadCoreVersion(req.Version, func(progress int) {
+			// 可以通过 WebSocket 推送进度
+		})
+	} else {
+		err = h.coreManager.DownloadCore(func(progress int) {
+			// 可以通过 WebSocket 推送进度
+		})
+	}
+
 	if err != nil {
 		response.Error(c, 4000, err.Error())
 		return

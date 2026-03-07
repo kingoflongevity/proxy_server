@@ -28,10 +28,18 @@ type CoreInfo struct {
 // ReleaseInfo GitHub Release 信息
 type ReleaseInfo struct {
 	TagName string `json:"tag_name"`
+	Name    string `json:"name"`
 	Assets  []struct {
 		Name string `json:"name"`
 		URL  string `json:"browser_download_url"`
 	} `json:"assets"`
+}
+
+// VersionInfo 版本信息（用于前端显示）
+type VersionInfo struct {
+	Version string `json:"version"`
+	Name    string `json:"name"`
+	Date    string `json:"date,omitempty"`
 }
 
 // CoreManager 内核管理器
@@ -39,6 +47,8 @@ type CoreManager struct {
 	corePath     string
 	installDir   string
 	githubAPIURL string
+	targetOS     string // 目标操作系统
+	targetArch   string // 目标架构
 }
 
 // NewCoreManager 创建内核管理器
@@ -64,8 +74,25 @@ func NewCoreManager() *CoreManager {
 	return &CoreManager{
 		corePath:     corePath,
 		installDir:   installDir,
-		githubAPIURL: "https://api.github.com/repos/XTLS/Xray-core/releases/latest",
+		githubAPIURL: "https://api.github.com/repos/XTLS/Xray-core/releases",
+		targetOS:     runtime.GOOS,
+		targetArch:   runtime.GOARCH,
 	}
+}
+
+// SetTargetPlatform 设置目标平台（用于跨平台下载）
+func (cm *CoreManager) SetTargetPlatform(goos, goarch string) {
+	if goos != "" {
+		cm.targetOS = goos
+	}
+	if goarch != "" {
+		cm.targetArch = goarch
+	}
+}
+
+// GetTargetPlatform 获取当前目标平台
+func (cm *CoreManager) GetTargetPlatform() (string, string) {
+	return cm.targetOS, cm.targetArch
 }
 
 // GetInstalledVersion 获取已安装的内核版本
@@ -96,7 +123,7 @@ func (cm *CoreManager) GetInstalledVersion() string {
 func (cm *CoreManager) GetLatestVersion() (*ReleaseInfo, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	resp, err := client.Get(cm.githubAPIURL)
+	resp, err := client.Get(cm.githubAPIURL + "/latest")
 	if err != nil {
 		return nil, fmt.Errorf("获取最新版本失败: %w", err)
 	}
@@ -104,6 +131,63 @@ func (cm *CoreManager) GetLatestVersion() (*ReleaseInfo, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("API请求失败: %d", resp.StatusCode)
+	}
+
+	var release ReleaseInfo
+	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		return nil, fmt.Errorf("解析版本信息失败: %w", err)
+	}
+
+	return &release, nil
+}
+
+// GetVersionList 获取版本列表
+func (cm *CoreManager) GetVersionList() ([]VersionInfo, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	resp, err := client.Get(cm.githubAPIURL + "?per_page=20")
+	if err != nil {
+		return nil, fmt.Errorf("获取版本列表失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API请求失败: %d", resp.StatusCode)
+	}
+
+	var releases []ReleaseInfo
+	if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
+		return nil, fmt.Errorf("解析版本列表失败: %w", err)
+	}
+
+	var versions []VersionInfo
+	for _, r := range releases {
+		versions = append(versions, VersionInfo{
+			Version: r.TagName,
+			Name:    r.Name,
+		})
+	}
+
+	return versions, nil
+}
+
+// GetReleaseByVersion 根据版本号获取发布信息
+func (cm *CoreManager) GetReleaseByVersion(version string) (*ReleaseInfo, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	// 如果版本号不以v开头，添加v前缀
+	if !strings.HasPrefix(version, "v") {
+		version = "v" + version
+	}
+
+	resp, err := client.Get(cm.githubAPIURL + "/tags/" + version)
+	if err != nil {
+		return nil, fmt.Errorf("获取版本信息失败: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("版本 %s 不存在", version)
 	}
 
 	var release ReleaseInfo
@@ -133,9 +217,11 @@ func (cm *CoreManager) GetCoreInfo() (*CoreInfo, error) {
 
 // getDownloadURL 获取适合当前系统的下载链接
 func (cm *CoreManager) getDownloadURL(release *ReleaseInfo) string {
-	goos := runtime.GOOS
-	goarch := runtime.GOARCH
+	return cm.getDownloadURLForPlatform(release, cm.targetOS, cm.targetArch)
+}
 
+// getDownloadURLForPlatform 获取指定平台的下载链接
+func (cm *CoreManager) getDownloadURLForPlatform(release *ReleaseInfo, goos, goarch string) string {
 	var pattern string
 	switch {
 	case goos == "windows" && goarch == "amd64":
@@ -171,10 +257,19 @@ func (cm *CoreManager) DownloadCore(progressCallback func(progress int)) error {
 	if err != nil {
 		return err
 	}
+	return cm.DownloadCoreVersion(release.TagName, progressCallback)
+}
 
-	downloadURL := cm.getDownloadURL(release)
+// DownloadCoreVersion 下载指定版本的内核
+func (cm *CoreManager) DownloadCoreVersion(version string, progressCallback func(progress int)) error {
+	release, err := cm.GetReleaseByVersion(version)
+	if err != nil {
+		return err
+	}
+
+	downloadURL := cm.getDownloadURLForPlatform(release, cm.targetOS, cm.targetArch)
 	if downloadURL == "" {
-		return fmt.Errorf("未找到适合当前系统的内核版本")
+		return fmt.Errorf("未找到适合 %s/%s 的内核版本", cm.targetOS, cm.targetArch)
 	}
 
 	if err := os.MkdirAll(cm.installDir, 0755); err != nil {
@@ -192,7 +287,7 @@ func (cm *CoreManager) DownloadCore(progressCallback func(progress int)) error {
 		return fmt.Errorf("解压失败: %w", err)
 	}
 
-	logger.Info("Xray内核更新完成，版本: %s", release.TagName)
+	logger.Info("Xray内核更新完成，版本: %s, 平台: %s/%s", release.TagName, cm.targetOS, cm.targetArch)
 	return nil
 }
 

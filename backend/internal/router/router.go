@@ -120,6 +120,7 @@ func SetupRouter(
 		
 		// 内核管理API
 		api.GET("/core/info", systemHandler.GetCoreInfo)
+		api.GET("/core/versions", systemHandler.GetCoreVersions)
 		api.POST("/core/update", systemHandler.UpdateCore)
 		api.POST("/core/upload", systemHandler.UploadCore)
 		

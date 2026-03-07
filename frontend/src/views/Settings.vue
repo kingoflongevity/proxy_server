@@ -15,6 +15,12 @@ interface CoreInfo {
   installed: boolean
 }
 
+interface VersionInfo {
+  version: string
+  name: string
+  date?: string
+}
+
 interface LocalIPs {
   ips: string[]
   primaryIP: string
@@ -29,6 +35,10 @@ const coreInfo = ref<CoreInfo>({
   downloadUrl: '',
   installed: false,
 })
+const coreVersions = ref<VersionInfo[]>([])
+const selectedVersion = ref('')
+const selectedOS = ref('windows')
+const selectedArch = ref('amd64')
 const coreUpdating = ref(false)
 const localIPs = ref<LocalIPs>({
   ips: [],
@@ -44,6 +54,18 @@ async function fetchCoreInfo() {
     coreInfo.value = data as any
   } catch (error) {
     console.error('获取内核信息失败:', error)
+  }
+}
+
+async function fetchCoreVersions() {
+  try {
+    const data = await request.get<VersionInfo[]>('/core/versions')
+    coreVersions.value = data as any
+    if (coreVersions.value.length > 0 && !selectedVersion.value) {
+      selectedVersion.value = coreVersions.value[0].version
+    }
+  } catch (error) {
+    console.error('获取版本列表失败:', error)
   }
 }
 
@@ -73,6 +95,7 @@ onMounted(async () => {
   await settingsStore.fetchSystemInfo()
   await settingsStore.fetchProxyMode()
   await fetchCoreInfo()
+  await fetchCoreVersions()
   await fetchLocalIPs()
 })
 
@@ -126,13 +149,17 @@ async function handleRestart() {
 }
 
 async function handleUpdateCore() {
-  if (!confirm('确定要从官方更新 Xray 内核吗？这可能需要几分钟时间。')) {
+  if (!confirm(`确定要下载 Xray 内核吗？\n版本: ${selectedVersion.value || '最新'}\n平台: ${selectedOS.value}/${selectedArch.value}`)) {
     return
   }
 
   coreUpdating.value = true
   try {
-    const data = await request.post('/core/update')
+    const data = await request.post('/core/update', {
+      version: selectedVersion.value,
+      os: selectedOS.value,
+      arch: selectedArch.value,
+    })
     coreInfo.value = data as any
     alert('内核更新成功！')
   } catch (error) {
@@ -635,9 +662,36 @@ function formatMemory(bytes: number): string {
               <span class="label">当前版本:</span>
               <span class="value">{{ coreInfo.version || '未安装' }}</span>
             </div>
+            <div class="core-options">
+              <div class="option-group">
+                <label>版本:</label>
+                <select v-model="selectedVersion" class="version-select">
+                  <option value="">最新版本</option>
+                  <option v-for="v in coreVersions" :key="v.version" :value="v.version">
+                    {{ v.version }} {{ v.name ? `- ${v.name}` : '' }}
+                  </option>
+                </select>
+              </div>
+              <div class="option-group">
+                <label>操作系统:</label>
+                <select v-model="selectedOS">
+                  <option value="windows">Windows</option>
+                  <option value="linux">Linux</option>
+                  <option value="darwin">macOS</option>
+                </select>
+              </div>
+              <div class="option-group">
+                <label>架构:</label>
+                <select v-model="selectedArch">
+                  <option value="amd64">x86_64 (AMD64)</option>
+                  <option value="arm64">ARM64</option>
+                  <option value="arm">ARM (32-bit)</option>
+                </select>
+              </div>
+            </div>
             <div class="button-group">
               <button type="button" class="btn" :disabled="coreUpdating" @click="handleUpdateCore">
-                {{ coreUpdating ? '更新中...' : '从官方更新' }}
+                {{ coreUpdating ? '下载中...' : '下载内核' }}
               </button>
               <label class="btn">
                 手动上传
@@ -673,8 +727,8 @@ function formatMemory(bytes: number): string {
             <div class="info-row">
               <span class="label">内存使用:</span>
               <span class="value">
-                {{ formatMemory(settingsStore.systemInfo.memory.used) }} /
-                {{ formatMemory(settingsStore.systemInfo.memory.total) }}
+                {{ formatMemory(settingsStore.systemInfo?.memory?.used || 0) }} /
+                {{ formatMemory(settingsStore.systemInfo?.memory?.total || 0) }}
               </span>
             </div>
           </div>
@@ -886,6 +940,35 @@ select {
     color: var(--text-primary);
     font-weight: 500;
   }
+}
+
+.core-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin: $spacing-md 0;
+  padding: $spacing-md;
+  background-color: var(--bg-tertiary);
+  border-radius: $border-radius-base;
+}
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  label {
+    font-size: $font-size-xs;
+    color: var(--text-secondary);
+  }
+
+  select {
+    min-width: 150px;
+  }
+}
+
+.version-select {
+  min-width: 200px;
 }
 
 .button-group {

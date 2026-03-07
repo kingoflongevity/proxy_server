@@ -38,10 +38,14 @@ type nodeService struct {
 
 // NewNodeService 创建节点服务
 func NewNodeService(nodeRepo repository.NodeRepository, systemRepo repository.SystemRepository) NodeService {
+	// 获取xray内核路径
+	coreManager := xray.NewCoreManager()
+	xrayPath := coreManager.GetCorePath()
+
 	return &nodeService{
 		nodeRepo:       nodeRepo,
 		systemRepo:     systemRepo,
-		processManager: xray.NewProcessManager(""),
+		processManager: xray.NewProcessManager(xrayPath),
 	}
 }
 
