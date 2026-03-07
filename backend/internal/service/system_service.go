@@ -56,11 +56,11 @@ func (s *systemService) GetStatus() (*model.SystemStatus, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	status.Uptime = int64(time.Since(s.startTime).Seconds())
 	status.GoroutineCount = runtime.NumGoroutine()
 	status.Version = s.version
-	
+
 	return status, nil
 }
 
@@ -70,9 +70,9 @@ func (s *systemService) GetTraffic() (*model.TrafficStats, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	traffic.Timestamp = time.Now()
-	
+
 	return traffic, nil
 }
 
@@ -84,7 +84,7 @@ func (s *systemService) GetLogs(query *model.SystemLogQuery) ([]*model.LogEntry,
 	if query.Limit > 1000 {
 		query.Limit = 1000
 	}
-	
+
 	return s.systemRepo.GetLogs(query)
 }
 
@@ -96,7 +96,7 @@ func (s *systemService) AddLog(level, message, node string) {
 		Timestamp: time.Now(),
 		Node:      node,
 	}
-	
+
 	if err := s.systemRepo.SaveLog(logEntry); err != nil {
 		logger.Error("保存日志失败: %v", err)
 	}
@@ -113,7 +113,7 @@ func (s *systemService) UpdateSettings(req *model.UpdateSettingsRequest) (*model
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if req.Theme != "" {
 		settings.Theme = req.Theme
 	}
@@ -128,7 +128,6 @@ func (s *systemService) UpdateSettings(req *model.UpdateSettingsRequest) (*model
 	if req.BindAddress != "" {
 		settings.BindAddress = req.BindAddress
 	}
-	// 处理端口（0表示不修改）
 	if req.Port > 0 {
 		settings.Port = req.Port
 	}
@@ -144,14 +143,27 @@ func (s *systemService) UpdateSettings(req *model.UpdateSettingsRequest) (*model
 	if req.LogLevel != "" {
 		settings.LogLevel = req.LogLevel
 	}
-	settings.AutoStart = req.AutoStart
-	settings.SilentStart = req.SilentStart
-	settings.AllowLan = req.AllowLan
-	
+	// 高级设置
+	if req.DNSServers != nil {
+		settings.DNSServers = req.DNSServers
+	}
+	if req.EnableMux {
+		settings.EnableMux = req.EnableMux
+	}
+	if req.EnableIpv6 {
+		settings.EnableIpv6 = req.EnableIpv6
+	}
+	if req.DomainStrategy != "" {
+		settings.DomainStrategy = req.DomainStrategy
+	}
+	if req.TunMode {
+		settings.TunMode = req.TunMode
+	}
+
 	if err := s.systemRepo.SaveSettings(settings); err != nil {
 		return nil, err
 	}
-	
+
 	return settings, nil
 }
 
@@ -161,14 +173,14 @@ func (s *systemService) GetConnectionStatus() (*model.ConnectionStatus, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &model.ConnectionStatus{
-		Connected:      status.Connected,
-		CurrentMode:    status.Mode,
-		UploadSpeed:    0,
-		DownloadSpeed: 0,
-		UploadTotal:    0,
-		DownloadTotal: 0,
+		Connected:       status.Connected,
+		CurrentMode:     status.Mode,
+		UploadSpeed:     0,
+		DownloadSpeed:   0,
+		UploadTotal:     0,
+		DownloadTotal:   0,
 		ConnectionCount: 0,
 	}, nil
 }
@@ -176,7 +188,7 @@ func (s *systemService) GetConnectionStatus() (*model.ConnectionStatus, error) {
 // GetSystemInfo 获取系统信息
 func (s *systemService) GetSystemInfo() (*model.SystemInfo, error) {
 	return &model.SystemInfo{
-		Version:       s.version,
+		Version:      s.version,
 		GoVersion:    runtime.Version(),
 		Os:           runtime.GOOS,
 		Arch:         runtime.GOARCH,
@@ -203,7 +215,7 @@ func (s *systemService) ExportConfig() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	return settings.ExportConfig(), nil
 }
 
@@ -213,11 +225,11 @@ func (s *systemService) ImportConfig(config string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if err := settings.ImportConfig(config); err != nil {
 		return err
 	}
-	
+
 	return s.systemRepo.SaveSettings(settings)
 }
 

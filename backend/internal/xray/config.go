@@ -177,9 +177,18 @@ func (g *ConfigGenerator) GenerateConfig(node *model.Node) (*XrayConfig, error) 
 			Access:   "", // 空字符串表示输出到stdout
 			Error:    "", // 空字符串表示输出到stderr
 		},
+		API: &APIConfig{
+			Tag: "api",
+			Services: []string{
+				"StatsService",
+				"HandlerService",
+				"LoggerService",
+			},
+		},
 		Inbounds: []InboundConfig{
 			g.generateSOCKSInbound(),
 			g.generateHTTPInbound(),
+			g.generateAPIInbound(),
 		},
 		Outbounds: []OutboundConfig{
 			g.generateOutbound(node),
@@ -187,6 +196,8 @@ func (g *ConfigGenerator) GenerateConfig(node *model.Node) (*XrayConfig, error) 
 		},
 		Routing: g.generateRouting(),
 		DNS:     g.generateDNS(),
+		Policy:  g.generatePolicy(),
+		Stats:   &StatsConfig{},
 	}
 
 	return config, nil
@@ -528,6 +539,11 @@ func (g *ConfigGenerator) generateRouting() *RoutingConfig {
 		Rules: []RuleConfig{
 			{
 				Type:        "field",
+				OutboundTag: "api",
+				InboundTag:  []string{"api"},
+			},
+			{
+				Type:        "field",
 				OutboundTag: "proxy",
 				InboundTag:  []string{"socks-in", "http-in"},
 			},
@@ -549,6 +565,40 @@ func (g *ConfigGenerator) generateDNS() *DNSConfig {
 			{
 				Address: "8.8.8.8",
 			},
+		},
+	}
+}
+
+// generateAPIInbound 生成API入站配置
+func (g *ConfigGenerator) generateAPIInbound() InboundConfig {
+	return InboundConfig{
+		Tag:      "api",
+		Port:     g.localPort + 2, // API端口为SOCKS5端口+2
+		Listen:   "127.0.0.1",
+		Protocol: "dokodemo-door",
+		Settings: json.RawMessage(`{"address":"127.0.0.1"}`),
+	}
+}
+
+// generatePolicy 生成策略配置
+func (g *ConfigGenerator) generatePolicy() *PolicyConfig {
+	return &PolicyConfig{
+		Levels: map[int]PolicyLevel{
+			0: {
+				Handshake:         4,
+				ConnIdle:          300,
+				UplinkOnly:        2,
+				DownlinkOnly:      5,
+				StatsUserUplink:   true,
+				StatsUserDownlink: true,
+				BufferSize:        10240,
+			},
+		},
+		System: &PolicySystem{
+			StatsInboundUplink:    true,
+			StatsInboundDownlink:  true,
+			StatsOutboundUplink:   true,
+			StatsOutboundDownlink: true,
 		},
 	}
 }

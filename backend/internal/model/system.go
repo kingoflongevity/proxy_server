@@ -37,33 +37,45 @@ type SystemLogQuery struct {
 }
 
 type SystemSettings struct {
-	Theme       string `json:"theme"`
-	Language    string `json:"language"`
-	AutoStart   bool   `json:"autoStart"`
-	SilentStart bool   `json:"silentStart"`
-	AllowLan    bool   `json:"allowLan"`
-	BindAddress string `json:"bindAddress"`
-	Port        int    `json:"port"`
-	SocksPort   int    `json:"socksPort"`
-	HttpPort    int    `json:"httpPort"`
-	MixedPort   int    `json:"mixedPort"`
-	LogLevel    string `json:"logLevel"`
-	ProxyMode   string `json:"proxyMode"`
+	Theme          string   `json:"theme"`
+	Language       string   `json:"language"`
+	AutoStart      bool     `json:"autoStart"`
+	SilentStart    bool     `json:"silentStart"`
+	AllowLan       bool     `json:"allowLan"`
+	BindAddress    string   `json:"bindAddress"`
+	Port           int      `json:"port"`
+	SocksPort      int      `json:"socksPort"`
+	HttpPort       int      `json:"httpPort"`
+	MixedPort      int      `json:"mixedPort"`
+	LogLevel       string   `json:"logLevel"`
+	ProxyMode      string   `json:"proxyMode"`
+	// 高级设置
+	DNSServers     []string `json:"dnsServers"`
+	EnableMux      bool     `json:"enableMux"`
+	EnableIpv6     bool     `json:"enableIpv6"`
+	DomainStrategy string   `json:"domainStrategy"`
+	TunMode        bool     `json:"tunMode"`
 }
 
 type UpdateSettingsRequest struct {
-	Theme       string `json:"theme"`
-	Language    string `json:"language"`
-	AutoStart   bool   `json:"autoStart"`
-	SilentStart bool   `json:"silentStart"`
-	AllowLan    bool   `json:"allowLan"`
-	BindAddress string `json:"bindAddress"`
-	Port        int    `json:"port"`
-	SocksPort   int    `json:"socksPort"`
-	HttpPort    int    `json:"httpPort"`
-	MixedPort   int    `json:"mixedPort"`
-	LogLevel    string `json:"logLevel"`
-	ProxyMode   string `json:"proxyMode"`
+	Theme          string   `json:"theme"`
+	Language       string   `json:"language"`
+	AutoStart      bool     `json:"autoStart"`
+	SilentStart    bool     `json:"silentStart"`
+	AllowLan       bool     `json:"allowLan"`
+	BindAddress    string   `json:"bindAddress"`
+	Port           int      `json:"port"`
+	SocksPort      int      `json:"socksPort"`
+	HttpPort       int      `json:"httpPort"`
+	MixedPort      int      `json:"mixedPort"`
+	LogLevel       string   `json:"logLevel"`
+	ProxyMode      string   `json:"proxyMode"`
+	// 高级设置
+	DNSServers     []string `json:"dnsServers"`
+	EnableMux      bool     `json:"enableMux"`
+	EnableIpv6     bool     `json:"enableIpv6"`
+	DomainStrategy string   `json:"domainStrategy"`
+	TunMode        bool     `json:"tunMode"`
 }
 
 type ConnectionStatus struct {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSettingsStore, useNodeStore } from '@/stores'
 
@@ -9,9 +9,23 @@ const settingsStore = useSettingsStore()
 const nodeStore = useNodeStore()
 
 const collapsed = ref(false)
+let statusInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(async () => {
   await settingsStore.fetchProxyMode()
+  await settingsStore.fetchConnectionStatus()
+  await nodeStore.fetchCurrentNode()
+  
+  // 每2秒刷新连接状态和流量数据
+  statusInterval = setInterval(async () => {
+    await settingsStore.fetchConnectionStatus()
+  }, 2000)
+})
+
+onUnmounted(() => {
+  if (statusInterval) {
+    clearInterval(statusInterval)
+  }
 })
 
 /**
