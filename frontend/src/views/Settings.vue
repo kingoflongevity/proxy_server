@@ -50,7 +50,12 @@ async function fetchCoreInfo() {
 async function fetchLocalIPs() {
   try {
     const data = await request.get<LocalIPs>('/system/local-ips')
-    localIPs.value = data as any
+    console.log('获取到的IP数据:', data)
+    if (data && typeof data === 'object') {
+      localIPs.value = data as any
+    } else {
+      throw new Error('数据格式错误')
+    }
   } catch (error) {
     console.error('获取本机IP失败:', error)
     localIPs.value = {
