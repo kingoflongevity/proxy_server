@@ -325,9 +325,15 @@ function formatTraffic(bytes: number): string {
   align-items: center;
   gap: $spacing-md;
   padding: $spacing-lg;
-  background-color: $bg-color-light;
+  background-color: var(--bg-tertiary);
   border-radius: $border-radius-lg;
-  border: 1px solid $border-color;
+  border: 1px solid var(--border-color);
+  transition: all $transition-duration $transition-timing;
+
+  &:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(22, 93, 255, 0.15);
+  }
 }
 
 .stat-icon {
@@ -345,27 +351,27 @@ function formatTraffic(bytes: number): string {
   }
 
   &.subscription {
-    background-color: rgba($primary-color, 0.1);
-    color: $primary-color;
+    background-color: rgba(22, 93, 255, 0.1);
+    color: var(--primary-color);
   }
 
   &.nodes {
-    background-color: rgba($success-color, 0.1);
-    color: $success-color;
+    background-color: rgba(0, 200, 83, 0.1);
+    color: var(--success-color);
   }
 
   &.available {
-    background-color: rgba($warning-color, 0.1);
-    color: $warning-color;
+    background-color: rgba(255, 184, 0, 0.1);
+    color: var(--warning-color);
   }
 
   &.connection {
-    background-color: rgba($error-color, 0.1);
-    color: $error-color;
+    background-color: rgba(255, 71, 87, 0.1);
+    color: var(--error-color);
   }
 
   &.core {
-    background-color: rgba(#9333ea, 0.1);
+    background-color: rgba(147, 51, 234, 0.1);
     color: #9333ea;
   }
 }
@@ -376,32 +382,32 @@ function formatTraffic(bytes: number): string {
 
 .stat-label {
   font-size: $font-size-sm;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
   margin-bottom: $spacing-xs;
 }
 
 .stat-value {
   font-size: $font-size-xl;
   font-weight: 600;
-  color: $text-color-primary;
+  color: var(--text-primary);
 
   &.connected {
-    color: $success-color;
+    color: var(--success-color);
   }
 }
 
 // 区块
 .section {
-  background-color: $bg-color-light;
+  background-color: var(--bg-tertiary);
   border-radius: $border-radius-lg;
   padding: $spacing-lg;
-  border: 1px solid $border-color;
+  border: 1px solid var(--border-color);
 }
 
 .section-title {
   font-size: $font-size-lg;
   font-weight: 500;
-  color: $text-color-primary;
+  color: var(--text-primary);
   margin-bottom: $spacing-lg;
 }
 
@@ -417,18 +423,19 @@ function formatTraffic(bytes: number): string {
   flex-direction: column;
   gap: $spacing-xs;
   padding: $spacing-md;
-  background-color: $bg-color-darker;
+  background-color: var(--bg-secondary);
   border-radius: $border-radius-base;
+  border: 1px solid var(--border-color);
 }
 
 .info-label {
   font-size: $font-size-sm;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 }
 
 .info-value {
   font-size: $font-size-base;
-  color: $text-color-primary;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -445,10 +452,10 @@ function formatTraffic(bytes: number): string {
   align-items: center;
   gap: $spacing-sm;
   padding: $spacing-lg;
-  background-color: $bg-color-darker;
-  border: 1px solid $border-color;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-base;
-  color: $text-color-primary;
+  color: var(--text-primary);
   transition: all $transition-duration $transition-timing;
 
   svg {
@@ -457,9 +464,9 @@ function formatTraffic(bytes: number): string {
   }
 
   &:hover {
-    background-color: $bg-color-lighter;
-    border-color: $primary-color;
-    color: $primary-color;
+    background-color: var(--bg-tertiary);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
   }
 }
 

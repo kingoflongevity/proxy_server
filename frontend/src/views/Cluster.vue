@@ -579,6 +579,12 @@ async function handleBackup(id: string) {
   margin-bottom: 24px;
 }
 
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .action-buttons {
   display: flex;
   gap: 12px;
@@ -589,10 +595,10 @@ async function handleBackup(id: string) {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background-color: #1a2332;
-  border: 1px solid #2a3548;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
-  color: #fff;
+  color: var(--text-primary);
   font-size: 14px;
   cursor: pointer;
   transition: all 0.3s;
@@ -603,12 +609,14 @@ async function handleBackup(id: string) {
   }
 
   &:hover {
-    background-color: #243044;
+    background-color: var(--bg-secondary);
+    border-color: var(--primary-color);
   }
 
   &.btn-primary {
-    background-color: #165dff;
-    border-color: #165dff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
 
     &:hover {
       background-color: #3d7eff;
@@ -616,8 +624,8 @@ async function handleBackup(id: string) {
   }
 
   &.btn-danger {
-    color: #ff4757;
-    border-color: #ff4757;
+    color: var(--error-color);
+    border-color: var(--error-color);
 
     &:hover {
       background-color: rgba(255, 71, 87, 0.1);
@@ -638,15 +646,16 @@ async function handleBackup(id: string) {
 
 .topology-section,
 .servers-section {
-  background: #111827;
+  background: var(--bg-tertiary);
   border-radius: 12px;
   padding: 24px;
-  border: 1px solid #2a3548;
+  border: 1px solid var(--border-color);
 
   h3 {
     margin-bottom: 16px;
     font-size: 16px;
     font-weight: 500;
+    color: var(--text-primary);
   }
 }
 
@@ -668,10 +677,16 @@ async function handleBackup(id: string) {
 }
 
 .server-card {
-  background: #1a2332;
+  background: var(--bg-secondary);
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid #2a3548;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s;
+
+  &:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(22, 93, 255, 0.15);
+  }
 }
 
 .server-header {
@@ -683,6 +698,7 @@ async function handleBackup(id: string) {
   h4 {
     font-size: 14px;
     font-weight: 500;
+    color: var(--text-primary);
   }
 }
 
@@ -693,18 +709,18 @@ async function handleBackup(id: string) {
   font-weight: 500;
 
   &.active {
-    background: rgba(0, 229, 160, 0.15);
-    color: #00e5a0;
+    background: rgba(0, 200, 83, 0.15);
+    color: var(--success-color);
   }
 
   &.inactive {
     background: rgba(139, 149, 165, 0.15);
-    color: #8b95a5;
+    color: var(--text-secondary);
   }
 
   &.error {
     background: rgba(255, 71, 87, 0.15);
-    color: #ff4757;
+    color: var(--error-color);
   }
 }
 
@@ -721,11 +737,11 @@ async function handleBackup(id: string) {
   font-size: 12px;
 
   .label {
-    color: #8b95a5;
+    color: var(--text-secondary);
   }
 
   .value {
-    color: #fff;
+    color: var(--text-primary);
   }
 }
 
@@ -751,9 +767,9 @@ async function handleBackup(id: string) {
 .dialog {
   width: 100%;
   max-width: 500px;
-  background-color: #111827;
+  background-color: var(--bg-secondary);
   border-radius: 12px;
-  border: 1px solid #2a3548;
+  border: 1px solid var(--border-color);
 }
 
 .dialog-header {
@@ -761,11 +777,12 @@ async function handleBackup(id: string) {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #2a3548;
+  border-bottom: 1px solid var(--border-color);
 
   h3 {
     font-size: 16px;
     font-weight: 500;
+    color: var(--text-primary);
   }
 }
 
@@ -777,7 +794,7 @@ async function handleBackup(id: string) {
   height: 32px;
   background: transparent;
   border-radius: 6px;
-  color: #8b95a5;
+  color: var(--text-secondary);
 
   svg {
     width: 20px;
@@ -785,15 +802,13 @@ async function handleBackup(id: string) {
   }
 
   &:hover {
-    background: #1a2332;
-    color: #fff;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
   }
 }
 
 .dialog-body {
   padding: 20px;
-  max-height: 60vh;
-  overflow-y: auto;
 }
 
 .form-group {
@@ -803,23 +818,27 @@ async function handleBackup(id: string) {
     display: block;
     margin-bottom: 8px;
     font-size: 14px;
-    color: #8b95a5;
+    color: var(--text-secondary);
   }
 
   input,
   select,
   textarea {
     width: 100%;
-    padding: 8px 12px;
-    background-color: #0a0e17;
-    border: 1px solid #2a3548;
+    padding: 10px 12px;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
-    color: #fff;
+    color: var(--text-primary);
     font-size: 14px;
 
     &:focus {
-      border-color: #165dff;
       outline: none;
+      border-color: var(--primary-color);
+    }
+
+    &::placeholder {
+      color: var(--text-tertiary);
     }
   }
 }
@@ -827,7 +846,15 @@ async function handleBackup(id: string) {
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-color);
 }
 
 .progress-section {
@@ -836,33 +863,33 @@ async function handleBackup(id: string) {
 
 .progress-bar {
   height: 8px;
-  background-color: #0a0e17;
+  background-color: var(--bg-tertiary);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
-  background-color: #165dff;
-  transition: width 0.3s;
+  background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+  border-radius: 4px;
+  transition: width 0.3s ease;
 }
 
 .progress-text {
   margin-top: 8px;
   font-size: 12px;
-  color: #8b95a5;
+  color: var(--text-secondary);
   text-align: center;
 }
 
 .scan-results {
   margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #2a3548;
 
   h4 {
-    margin-bottom: 12px;
     font-size: 14px;
     font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 12px;
   }
 }
 
@@ -870,31 +897,20 @@ async function handleBackup(id: string) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 200px;
-  overflow-y: auto;
 }
 
 .result-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
-  background-color: #0a0e17;
+  padding: 12px;
+  background-color: var(--bg-tertiary);
   border-radius: 6px;
-  font-size: 13px;
-}
+  border: 1px solid var(--border-color);
 
-.dialog-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 16px 20px;
-  border-top: 1px solid #2a3548;
-}
-
-@media (max-width: 768px) {
-  .cluster-content {
-    grid-template-columns: 1fr;
+  span {
+    font-size: 14px;
+    color: var(--text-primary);
   }
 }
 </style>

@@ -266,7 +266,7 @@ const isConnected = computed(() => {
   display: flex;
   width: 100%;
   height: 100%;
-  background-color: $bg-color-dark;
+  background-color: var(--bg-primary);
 }
 
 // 侧边栏
@@ -275,9 +275,9 @@ const isConnected = computed(() => {
   flex-direction: column;
   width: $sidebar-width;
   height: 100%;
-  background-color: $sidebar-bg;
-  border-right: 1px solid $border-color;
-  transition: width $transition-duration $transition-timing;
+  background-color: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  transition: width $transition-duration $transition-timing, background-color $transition-duration $transition-timing;
 
   &.collapsed {
     width: $sidebar-collapsed-width;
@@ -294,14 +294,14 @@ const isConnected = computed(() => {
   align-items: center;
   justify-content: center;
   height: $header-height;
-  border-bottom: 1px solid $border-color;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .logo {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  color: $primary-color;
+  color: var(--primary-color);
   font-size: $font-size-lg;
   font-weight: 600;
 }
@@ -322,19 +322,19 @@ const isConnected = computed(() => {
   align-items: center;
   gap: $spacing-md;
   padding: $spacing-md $spacing-lg;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: all $transition-duration $transition-timing;
 
   &:hover {
-    color: $text-color-primary;
-    background-color: $bg-color-light;
+    color: var(--text-primary);
+    background-color: var(--bg-tertiary);
   }
 
   &.active {
-    color: $primary-color;
-    background-color: rgba($primary-color, 0.1);
-    border-right: 3px solid $primary-color;
+    color: var(--primary-color);
+    background-color: rgba(22, 93, 255, 0.1);
+    border-right: 3px solid var(--primary-color);
   }
 }
 
@@ -346,7 +346,7 @@ const isConnected = computed(() => {
 
 .sidebar-footer {
   padding: $spacing-md;
-  border-top: 1px solid $border-color;
+  border-top: 1px solid var(--border-color);
 }
 
 .collapse-btn {
@@ -356,12 +356,12 @@ const isConnected = computed(() => {
   width: 100%;
   padding: $spacing-sm;
   background-color: transparent;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
   border-radius: $border-radius-base;
 
   &:hover {
-    background-color: $bg-color-light;
-    color: $text-color-primary;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
   }
 }
 
@@ -390,8 +390,8 @@ const isConnected = computed(() => {
   justify-content: space-between;
   height: $header-height;
   padding: 0 $spacing-lg;
-  background-color: $header-bg;
-  border-bottom: 1px solid $border-color;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .header-left {
@@ -402,7 +402,7 @@ const isConnected = computed(() => {
 .page-title {
   font-size: $font-size-lg;
   font-weight: 500;
-  color: $text-color-primary;
+  color: var(--text-primary);
 }
 
 .header-right {
@@ -421,16 +421,16 @@ const isConnected = computed(() => {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: $error-color;
+  background-color: var(--error-color);
 
   &.connected {
-    background-color: $success-color;
+    background-color: var(--success-color);
   }
 }
 
 .status-text {
   font-size: $font-size-sm;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 }
 
 .current-node {
@@ -442,13 +442,13 @@ const isConnected = computed(() => {
 
 .node-name {
   font-size: $font-size-sm;
-  color: $text-color-primary;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
 .node-latency {
   font-size: $font-size-xs;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 }
 
 .speed-display {
@@ -461,7 +461,7 @@ const isConnected = computed(() => {
   align-items: center;
   gap: $spacing-xs;
   font-size: $font-size-sm;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 }
 
 .speed-icon {
@@ -469,11 +469,11 @@ const isConnected = computed(() => {
   height: 16px;
 
   &.upload {
-    color: $success-color;
+    color: var(--success-color);
   }
 
   &.download {
-    color: $primary-color;
+    color: var(--primary-color);
   }
 }
 
@@ -481,24 +481,24 @@ const isConnected = computed(() => {
   display: flex;
   gap: $spacing-xs;
   padding: 2px;
-  background-color: $bg-color-light;
+  background-color: var(--bg-tertiary);
   border-radius: $border-radius-base;
 }
 
 .mode-btn {
   padding: $spacing-xs $spacing-md;
   font-size: $font-size-sm;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
   background-color: transparent;
   border-radius: $border-radius-sm;
 
   &:hover {
-    color: $text-color-primary;
+    color: var(--text-primary);
   }
 
   &.active {
-    color: $text-color-primary;
-    background-color: $primary-color;
+    color: #fff;
+    background-color: var(--primary-color);
   }
 }
 
@@ -507,7 +507,7 @@ const isConnected = computed(() => {
   flex: 1;
   padding: $spacing-lg;
   overflow-y: auto;
-  background-color: $bg-color-dark;
+  background-color: var(--bg-primary);
 }
 
 // 响应式
