@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSettingsStore, useNodeStore } from '@/stores'
 
@@ -9,7 +9,6 @@ const settingsStore = useSettingsStore()
 const nodeStore = useNodeStore()
 
 const collapsed = ref(false)
-const routeKey = ref(0)
 
 onMounted(async () => {
   await settingsStore.fetchProxyMode()
@@ -80,7 +79,6 @@ function toggleCollapse() {
  */
 async function navigateTo(path: string) {
   if (route.path === path) {
-    routeKey.value++
     return
   }
   
@@ -90,18 +88,6 @@ async function navigateTo(path: string) {
     console.error('导航失败:', error)
   }
 }
-
-/**
- * 监听路由变化
- */
-watch(
-  () => route.path,
-  (newPath, oldPath) => {
-    if (newPath !== oldPath) {
-      routeKey.value++
-    }
-  }
-)
 
 /**
  * 格式化速度
@@ -259,7 +245,9 @@ function formatSpeed(bytesPerSecond: number): string {
 
       <!-- 内容区 -->
       <main class="content">
-        <router-view :key="routeKey" />
+        <router-view v-slot="{ Component }">
+          <component :is="Component" :key="route.fullPath" />
+        </router-view>
       </main>
     </div>
   </div>
