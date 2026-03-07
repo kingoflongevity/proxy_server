@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"encoding/json"
-	"time"
 
 	"proxy_server/internal/model"
 )

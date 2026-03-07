@@ -363,8 +363,8 @@ func (s *scalerService) GetGroupMetrics(groupID string) (*GroupMetrics, error) {
 		totalCPU += server.CPUUsage
 		totalMemory += server.MemoryUsage
 		metrics.TotalConnections += server.Connections
-		metrics.TotalBandwidthUp += server.BandwidthUp
-		metrics.TotalBandwidthDown += server.BandwidthDown
+		metrics.TotalBandwidthUp += int64(server.BandwidthUp)
+		metrics.TotalBandwidthDown += int64(server.BandwidthDown)
 	}
 
 	metrics.ServerCount = len(servers)

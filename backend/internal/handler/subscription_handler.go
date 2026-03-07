@@ -35,13 +35,13 @@ func (h *SubscriptionHandler) Create(c *gin.Context) {
 		response.BadRequest(c, "参数错误: "+err.Error())
 		return
 	}
-	
+
 	subscription, err := h.subService.Create(&req)
 	if err != nil {
 		response.Error(c, 1000, err.Error())
 		return
 	}
-	
+
 	response.Success(c, subscription)
 }
 
@@ -52,13 +52,13 @@ func (h *SubscriptionHandler) GetByID(c *gin.Context) {
 		response.BadRequest(c, "缺少订阅ID")
 		return
 	}
-	
+
 	subscription, err := h.subService.GetByID(id)
 	if err != nil {
 		response.Error(c, 1000, err.Error())
 		return
 	}
-	
+
 	response.Success(c, subscription)
 }
 
@@ -69,7 +69,7 @@ func (h *SubscriptionHandler) GetAll(c *gin.Context) {
 		response.Error(c, 1000, err.Error())
 		return
 	}
-	
+
 	response.Success(c, subscriptions)
 }
 
@@ -80,19 +80,19 @@ func (h *SubscriptionHandler) Update(c *gin.Context) {
 		response.BadRequest(c, "缺少订阅ID")
 		return
 	}
-	
+
 	var req model.SubscriptionUpdateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		response.BadRequest(c, "参数错误: "+err.Error())
 		return
 	}
-	
+
 	subscription, err := h.subService.Update(id, &req)
 	if err != nil {
 		response.Error(c, 1000, err.Error())
 		return
 	}
-	
+
 	response.Success(c, subscription)
 }
 
@@ -103,12 +103,12 @@ func (h *SubscriptionHandler) Delete(c *gin.Context) {
 		response.BadRequest(c, "缺少订阅ID")
 		return
 	}
-	
+
 	if err := h.subService.Delete(id); err != nil {
 		response.Error(c, 1000, err.Error())
 		return
 	}
-	
+
 	response.SuccessWithMessage(c, "删除成功", nil)
 }
 
@@ -125,7 +125,16 @@ func (h *SubscriptionHandler) Refresh(c *gin.Context) {
 		return
 	}
 
-	response.SuccessWithMessage(c, "刷新成功", nil)
+	// 获取更新后的订阅信息
+	subscription, err := h.subService.GetByID(id)
+	if err != nil {
+		response.Error(c, 1002, err.Error())
+		return
+	}
+
+	response.Success(c, gin.H{
+		"count": subscription.NodeCount,
+	})
 }
 
 // Test 测试订阅连接

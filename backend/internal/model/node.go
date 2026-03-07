@@ -56,7 +56,7 @@ type XHTTPConfig struct {
 // Node 节点模型
 type Node struct {
 	ID             string    `json:"id"`
-	SubscriptionID string    `json:"subscription_id"`
+	SubscriptionID string    `json:"subscriptionId"`
 	Name           string    `json:"name"`
 	Type           NodeType  `json:"type"`
 	Server         string    `json:"server"`
@@ -72,41 +72,41 @@ type Node struct {
 	Alpn           []string  `json:"alpn,omitempty"`
 	
 	// REALITY配置 (Xray-core v25+)
-	RealityPublicKey string `json:"reality_public_key,omitempty"`
-	RealityShortID   string `json:"reality_short_id,omitempty"`
-	RealityFingerprint string `json:"reality_fingerprint,omitempty"`
-	RealitySpiderX   string `json:"reality_spider_x,omitempty"` // SpiderX参数
+	RealityPublicKey string `json:"realityPublicKey,omitempty"`
+	RealityShortID   string `json:"realityShortId,omitempty"`
+	RealityFingerprint string `json:"realityFingerprint,omitempty"`
+	RealitySpiderX   string `json:"realitySpiderX,omitempty"` // SpiderX参数
 	
 	// TLS配置 (Xray-core v26.2.6重要变更)
-	PinnedPeerCertSha256 string `json:"pinned_peer_cert_sha256,omitempty"` // 替代allowInsecure
-	VerifyPeerCertByName string `json:"verify_peer_cert_by_name,omitempty"` // 证书名称验证
+	PinnedPeerCertSha256 string `json:"pinnedPeerCertSha256,omitempty"` // 替代allowInsecure
+	VerifyPeerCertByName string `json:"verifyPeerCertByName,omitempty"` // 证书名称验证
 	Fingerprint         string `json:"fingerprint,omitempty"` // TLS指纹（chrome, firefox等）
 	
 	// XHTTP配置 (Xray-core v26.2.6新增)
-	XHTTPConfig *XHTTPConfig `json:"xhttp_config,omitempty"`
+	XHTTPConfig *XHTTPConfig `json:"xhttpConfig,omitempty"`
 	
 	// Finalmask配置 (Xray-core v26.2.6新增)
 	Finalmask *FinalmaskConfig `json:"finalmask,omitempty"`
 	
 	// 其他配置
 	Flow          string   `json:"flow,omitempty"` // VLESS flow控制
-	ServiceName   string   `json:"service_name,omitempty"` // gRPC service name
+	ServiceName   string   `json:"serviceName,omitempty"` // gRPC service name
 	Headers       map[string]string `json:"headers,omitempty"`
 	
 	// VMess特殊配置
-	AlterID       int    `json:"alter_id,omitempty"` // VMess AlterID（v26.2.6建议设为0）
+	AlterID       int    `json:"alterId,omitempty"` // VMess AlterID（v26.2.6建议设为0）
 	
 	// 性能指标
 	Latency       int       `json:"latency"` // 延迟（毫秒）
 	Speed         int       `json:"speed"` // 速度（MB/s）
 	Score         int       `json:"score"` // 综合评分
-	LastTest      time.Time `json:"last_test"`
+	LastTest      time.Time `json:"lastTest"`
 	
 	// 状态
 	Enabled       bool      `json:"enabled"`
 	Connected     bool      `json:"connected"`
-	CreatedAt     time.Time `json:"created_at"`
-	UpdatedAt     time.Time `json:"updated_at"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
 }
 
 // NodeUpdateRequest 更新节点请求

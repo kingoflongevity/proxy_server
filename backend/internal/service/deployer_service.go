@@ -372,3 +372,25 @@ func (d *DeployerService) GetServiceStatus(serverID string) (string, error) {
 	}
 	return strings.TrimSpace(output), nil
 }
+
+// StartProxy 启动代理服务
+func (d *DeployerService) StartProxy(serverID string) error {
+	_, err := d.sshManager.ExecuteCommand(serverID, "systemctl start proxy-server")
+	if err != nil {
+		logger.Error("启动代理服务失败: %s - %v", serverID, err)
+		return err
+	}
+	logger.Info("代理服务已启动: %s", serverID)
+	return nil
+}
+
+// StopProxy 停止代理服务
+func (d *DeployerService) StopProxy(serverID string) error {
+	_, err := d.sshManager.ExecuteCommand(serverID, "systemctl stop proxy-server")
+	if err != nil {
+		logger.Error("停止代理服务失败: %s - %v", serverID, err)
+		return err
+	}
+	logger.Info("代理服务已停止: %s", serverID)
+	return nil
+}

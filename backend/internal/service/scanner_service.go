@@ -8,9 +8,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"proxy_server/internal/model"
-	"proxy_server/pkg/logger"
 )
 
 // ScannerService 局域网扫描服务

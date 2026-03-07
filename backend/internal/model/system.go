@@ -4,10 +4,10 @@ import "time"
 
 type SystemStatus struct {
 	Connected      bool      `json:"connected"`
-	CurrentNode    *Node     `json:"current_node,omitempty"`
-	StartTime      time.Time `json:"start_time"`
+	CurrentNode    *Node     `json:"currentNode,omitempty"`
+	StartTime      time.Time `json:"startTime"`
 	Uptime         int64     `json:"uptime"`
-	GoroutineCount int       `json:"goroutine_count"`
+	GoroutineCount int       `json:"goroutineCount"`
 	Version        string    `json:"version"`
 	Mode           string    `json:"mode"`
 }
@@ -15,8 +15,8 @@ type SystemStatus struct {
 type TrafficStats struct {
 	Upload        uint64    `json:"upload"`
 	Download      uint64    `json:"download"`
-	UploadSpeed   uint64    `json:"upload_speed"`
-	DownloadSpeed uint64    `json:"download_speed"`
+	UploadSpeed   uint64    `json:"uploadSpeed"`
+	DownloadSpeed uint64    `json:"downloadSpeed"`
 	Connections   int       `json:"connections"`
 	Timestamp     time.Time `json:"timestamp"`
 }
@@ -39,50 +39,50 @@ type SystemLogQuery struct {
 type SystemSettings struct {
 	Theme       string `json:"theme"`
 	Language    string `json:"language"`
-	AutoStart   bool   `json:"auto_start"`
-	SilentStart bool   `json:"silent_start"`
-	AllowLan    bool   `json:"allow_lan"`
-	BindAddress string `json:"bind_address"`
+	AutoStart   bool   `json:"autoStart"`
+	SilentStart bool   `json:"silentStart"`
+	AllowLan    bool   `json:"allowLan"`
+	BindAddress string `json:"bindAddress"`
 	Port        int    `json:"port"`
-	SocksPort   int    `json:"socks_port"`
-	HttpPort    int    `json:"http_port"`
-	MixedPort   int    `json:"mixed_port"`
-	LogLevel    string `json:"log_level"`
-	ProxyMode   string `json:"proxy_mode"`
+	SocksPort   int    `json:"socksPort"`
+	HttpPort    int    `json:"httpPort"`
+	MixedPort   int    `json:"mixedPort"`
+	LogLevel    string `json:"logLevel"`
+	ProxyMode   string `json:"proxyMode"`
 }
 
 type UpdateSettingsRequest struct {
 	Theme       string `json:"theme"`
 	Language    string `json:"language"`
-	AutoStart   bool   `json:"auto_start"`
-	SilentStart bool   `json:"silent_start"`
-	AllowLan    bool   `json:"allow_lan"`
-	BindAddress string `json:"bind_address"`
+	AutoStart   bool   `json:"autoStart"`
+	SilentStart bool   `json:"silentStart"`
+	AllowLan    bool   `json:"allowLan"`
+	BindAddress string `json:"bindAddress"`
 	Port        int    `json:"port"`
-	SocksPort   int    `json:"socks_port"`
-	HttpPort    int    `json:"http_port"`
-	MixedPort   int    `json:"mixed_port"`
-	LogLevel    string `json:"log_level"`
-	ProxyMode   string `json:"proxy_mode"`
+	SocksPort   int    `json:"socksPort"`
+	HttpPort    int    `json:"httpPort"`
+	MixedPort   int    `json:"mixedPort"`
+	LogLevel    string `json:"logLevel"`
+	ProxyMode   string `json:"proxyMode"`
 }
 
 type ConnectionStatus struct {
-	Connected      bool   `json:"connected"`
-	CurrentMode    string `json:"current_mode"`
-	UploadSpeed    uint64 `json:"upload_speed"`
-	DownloadSpeed  uint64 `json:"download_speed"`
-	UploadTotal    uint64 `json:"upload_total"`
-	DownloadTotal  uint64 `json:"download_total"`
-	ConnectionCount int   `json:"connection_count"`
+	Connected       bool   `json:"connected"`
+	CurrentMode     string `json:"currentMode"`
+	UploadSpeed     uint64 `json:"uploadSpeed"`
+	DownloadSpeed   uint64 `json:"downloadSpeed"`
+	UploadTotal     uint64 `json:"uploadTotal"`
+	DownloadTotal   uint64 `json:"downloadTotal"`
+	ConnectionCount int    `json:"connectionCount"`
 }
 
 type SystemInfo struct {
 	Version       string `json:"version"`
-	GoVersion     string `json:"go_version"`
+	GoVersion     string `json:"goVersion"`
 	Os            string `json:"os"`
 	Arch          string `json:"arch"`
-	NumCPU        int    `json:"num_cpu"`
-	GoroutineNum  int    `json:"goroutine_num"`
+	NumCPU        int    `json:"numCpu"`
+	GoroutineNum  int    `json:"goroutineNum"`
 	Uptime        int64  `json:"uptime"`
 }
 

@@ -51,7 +51,7 @@ export function deleteSubscription(id: string): Promise<void> {
  * 更新订阅节点
  */
 export function updateSubscriptionNodes(id: string): Promise<{ count: number }> {
-  return request.post(`/subscriptions/${id}/update`)
+  return request.post(`/subscriptions/${id}/refresh`)
 }
 
 /**

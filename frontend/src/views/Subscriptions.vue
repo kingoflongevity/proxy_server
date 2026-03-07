@@ -99,7 +99,13 @@ async function handleUpdate(id: string) {
  * 格式化日期
  */
 function formatDate(dateString: string): string {
+  if (!dateString || dateString === '0001-01-01T00:00:00Z') {
+    return '从未更新'
+  }
   const date = new Date(dateString)
+  if (isNaN(date.getTime())) {
+    return '从未更新'
+  }
   return date.toLocaleString('zh-CN')
 }
 
@@ -222,7 +228,7 @@ function getStatusColor(status: string): string {
         <div class="card-body">
           <div class="info-row">
             <span class="label">类型:</span>
-            <span class="value">{{ subscription.type.toUpperCase() }}</span>
+            <span class="value">{{ (subscription.type || 'unknown').toUpperCase() }}</span>
           </div>
           <div class="info-row">
             <span class="label">节点数:</span>

@@ -81,7 +81,7 @@ func (b *BackupService) CreateBackup(backupType string, servers []model.ClusterS
 
 	record := &model.BackupRecord{
 		ID:        fmt.Sprintf("backup-%d", time.Now().UnixNano()),
-		Type:      backupType,
+		Type:      model.BackupType(backupType),
 		Name:      name,
 		Size:      stat.Size(),
 		MD5:       md5Hash,
@@ -175,7 +175,7 @@ func (b *BackupService) ListBackups() ([]model.BackupRecord, error) {
 
 		records = append(records, model.BackupRecord{
 			ID:        strings.TrimSuffix(name, ".tar.gz"),
-			Type:      backupType,
+			Type:      model.BackupType(backupType),
 			Name:      name,
 			Size:      stat.Size(),
 			MD5:       b.calculateMD5(file),

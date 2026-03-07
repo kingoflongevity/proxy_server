@@ -26,7 +26,7 @@ type SubscriptionService interface {
 
 // subscriptionService 订阅服务实现
 type subscriptionService struct {
-	subRepo repository.SubscriptionRepository
+	subRepo  repository.SubscriptionRepository
 	nodeRepo repository.NodeRepository
 	parser   *xray.SubscriptionParser
 }
@@ -46,12 +46,21 @@ func (s *subscriptionService) Create(req *model.SubscriptionCreateRequest) (*mod
 		req.UpdateInterval = 24
 	}
 
+	subscriptionType := req.Type
+	if subscriptionType == "" {
+		subscriptionType = "mixed"
+	}
+
 	subscription := &model.Subscription{
 		ID:             utils.GenerateID(),
 		Name:           req.Name,
 		URL:            req.URL,
+		Type:           subscriptionType,
+		Status:         "active",
 		AutoUpdate:     req.AutoUpdate,
 		UpdateInterval: req.UpdateInterval,
+		NodeCount:      0,
+		LastUpdate:     time.Time{},
 		CreatedAt:      time.Now(),
 		UpdatedAt:      time.Now(),
 	}
@@ -101,6 +110,9 @@ func (s *subscriptionService) Update(id string, req *model.SubscriptionUpdateReq
 	if req.URL != "" {
 		subscription.URL = req.URL
 	}
+	if req.Type != "" {
+		subscription.Type = req.Type
+	}
 	subscription.AutoUpdate = req.AutoUpdate
 	if req.UpdateInterval > 0 {
 		subscription.UpdateInterval = req.UpdateInterval
@@ -148,12 +160,16 @@ func (s *subscriptionService) Refresh(id string) error {
 	content, err := s.fetchSubscription(subscription.URL)
 	if err != nil {
 		logger.Error("获取订阅内容失败: %v", err)
+		subscription.Status = "error"
+		s.subRepo.Update(subscription)
 		return errors.NewError(errors.SubscriptionFetchFailed, err.Error())
 	}
 
 	nodes, err := s.parser.Parse(content)
 	if err != nil {
 		logger.Error("解析订阅节点失败: %v", err)
+		subscription.Status = "error"
+		s.subRepo.Update(subscription)
 		return errors.NewError(errors.SubscriptionParseFailed, err.Error())
 	}
 
@@ -172,6 +188,7 @@ func (s *subscriptionService) Refresh(id string) error {
 	subscription.NodeCount = len(nodes)
 	subscription.LastUpdate = time.Now()
 	subscription.UpdatedAt = time.Now()
+	subscription.Status = "active"
 	if err := s.subRepo.Update(subscription); err != nil {
 		logger.Error("更新订阅信息失败: %v", err)
 	}

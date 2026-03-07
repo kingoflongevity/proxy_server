@@ -36,8 +36,8 @@ type Rule struct {
 	Description string     `json:"description"`
 	Enabled     bool       `json:"enabled"`
 	Priority    int        `json:"priority"` // 优先级，数字越大优先级越高
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
 }
 
 // RuleCreateRequest 创建规则请求

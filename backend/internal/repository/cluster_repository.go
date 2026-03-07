@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"sync"
 	"time"
 
@@ -112,12 +111,6 @@ func (r *clusterServerRepository) Create(server *model.ClusterServer) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// 序列化代理配置
-	var proxyConfigJSON []byte
-	if server.ProxyConfig != nil {
-		proxyConfigJSON, _ = json.Marshal(server.ProxyConfig)
-	}
-
 	// 序列化标签
 	tagsJSON, _ := json.Marshal(server.Tags)
 
@@ -133,7 +126,7 @@ func (r *clusterServerRepository) Create(server *model.ClusterServer) error {
 	`,
 		server.ID, server.Name, server.IP, server.Port, server.Username, server.Password, server.PrivateKey,
 		server.OSType, server.OSVersion, server.Arch, server.Status, server.LastHeartbeat,
-		server.ProxyEnabled, server.ProxyPort, server.ProxyType, string(proxyConfigJSON),
+		server.ProxyEnabled, server.ProxyPort, server.ProxyType, server.ProxyConfig,
 		server.CPU, server.Memory, server.Disk, server.CPUUsage, server.MemoryUsage,
 		server.BandwidthUp, server.BandwidthDown, server.Connections,
 		string(tagsJSON), server.GroupID, server.CreatedAt, server.UpdatedAt, server.DeployedAt,
@@ -157,7 +150,7 @@ func (r *clusterServerRepository) GetByID(id string) (*model.ClusterServer, erro
 	r.mu.RUnlock()
 
 	server := &model.ClusterServer{}
-	var proxyConfigJSON, tagsJSON string
+	var tagsJSON string
 	var lastHeartbeat, deployedAt sql.NullTime
 
 	err := r.db.QueryRow(`
@@ -171,7 +164,7 @@ func (r *clusterServerRepository) GetByID(id string) (*model.ClusterServer, erro
 	`, id).Scan(
 		&server.ID, &server.Name, &server.IP, &server.Port, &server.Username, &server.Password, &server.PrivateKey,
 		&server.OSType, &server.OSVersion, &server.Arch, &server.Status, &lastHeartbeat,
-		&server.ProxyEnabled, &server.ProxyPort, &server.ProxyType, &proxyConfigJSON,
+		&server.ProxyEnabled, &server.ProxyPort, &server.ProxyType, &server.ProxyConfig,
 		&server.CPU, &server.Memory, &server.Disk, &server.CPUUsage, &server.MemoryUsage,
 		&server.BandwidthUp, &server.BandwidthDown, &server.Connections,
 		&tagsJSON, &server.GroupID, &server.CreatedAt, &server.UpdatedAt, &deployedAt,
@@ -179,11 +172,6 @@ func (r *clusterServerRepository) GetByID(id string) (*model.ClusterServer, erro
 
 	if err != nil {
 		return nil, err
-	}
-
-	// 解析代理配置
-	if proxyConfigJSON != "" {
-		json.Unmarshal([]byte(proxyConfigJSON), &server.ProxyConfig)
 	}
 
 	// 解析标签
@@ -196,7 +184,7 @@ func (r *clusterServerRepository) GetByID(id string) (*model.ClusterServer, erro
 		server.LastHeartbeat = lastHeartbeat.Time
 	}
 	if deployedAt.Valid {
-		server.DeployedAt = &deployedAt.Time
+		server.DeployedAt = deployedAt.Time
 	}
 
 	return server, nil
@@ -265,11 +253,6 @@ func (r *clusterServerRepository) Update(server *model.ClusterServer) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	var proxyConfigJSON []byte
-	if server.ProxyConfig != nil {
-		proxyConfigJSON, _ = json.Marshal(server.ProxyConfig)
-	}
-
 	tagsJSON, _ := json.Marshal(server.Tags)
 
 	_, err := r.db.Exec(`
@@ -284,7 +267,7 @@ func (r *clusterServerRepository) Update(server *model.ClusterServer) error {
 	`,
 		server.Name, server.IP, server.Port, server.Username, server.Password, server.PrivateKey,
 		server.OSType, server.OSVersion, server.Arch, server.Status, server.LastHeartbeat,
-		server.ProxyEnabled, server.ProxyPort, server.ProxyType, string(proxyConfigJSON),
+		server.ProxyEnabled, server.ProxyPort, server.ProxyType, server.ProxyConfig,
 		server.CPU, server.Memory, server.Disk, server.CPUUsage, server.MemoryUsage,
 		server.BandwidthUp, server.BandwidthDown, server.Connections,
 		string(tagsJSON), server.GroupID, server.UpdatedAt, server.DeployedAt,
