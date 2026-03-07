@@ -25,8 +25,8 @@ const coreUpdating = ref(false)
 
 async function fetchCoreInfo() {
   try {
-    const info = await request.get<CoreInfo>('/core/info')
-    coreInfo.value = info
+    const data = await request.get<CoreInfo>('/core/info')
+    coreInfo.value = data as any
   } catch (error) {
     console.error('获取内核信息失败:', error)
   }
@@ -95,8 +95,8 @@ async function handleUpdateCore() {
 
   coreUpdating.value = true
   try {
-    const info = await request.post('/core/update')
-    coreInfo.value = info
+    const data = await request.post('/core/update')
+    coreInfo.value = data as any
     alert('内核更新成功！')
   } catch (error) {
     console.error('更新内核失败:', error)
@@ -117,8 +117,8 @@ async function handleUploadCore(event: Event) {
   formData.append('file', file)
 
   try {
-    const info = await request.post('/core/upload', formData)
-    coreInfo.value = info
+    const data = await request.post('/core/upload', formData)
+    coreInfo.value = data as any
     alert('内核上传成功！')
   } catch (error) {
     console.error('上传内核失败:', error)
@@ -534,7 +534,7 @@ function formatMemory(bytes: number): string {
           <textarea
             class="dns-input"
             :value="settingsStore.settings.dnsServers?.join('\n')"
-            @blur="(e) => updateSetting('dnsServers', ($event.target as HTMLTextAreaElement).value.split('\n').filter(s => s.trim()))"
+            @blur="(e) => updateSetting('dnsServers', (e.target as HTMLTextAreaElement).value.split('\n').filter(s => s.trim()))"
             placeholder="https://dns.google/dns-query&#10;1.1.1.1&#10;8.8.8.8"
             rows="3"
           ></textarea>

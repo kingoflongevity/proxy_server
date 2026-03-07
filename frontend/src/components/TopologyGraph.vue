@@ -40,11 +40,13 @@ interface Connection {
   type: string
 }
 
-const props = defineProps<{
-  servers: Server[]
+const props = withDefaults(defineProps<{
+  servers?: Server[]
   groups: Group[]
   connections: Connection[]
-}>()
+}>(), {
+  servers: () => [],
+})
 
 const containerRef = ref<HTMLDivElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -166,7 +168,7 @@ function drawConnections() {
 function drawNodes() {
   if (!ctx) return
 
-  Object.entries(nodePositions.value).forEach(([id, pos]) => {
+  Object.entries(nodePositions.value).forEach(([_id, pos]) => {
     const size = pos.type === 'master' ? 50 : pos.type === 'group' ? 40 : 30
 
     ctx!.beginPath()

@@ -19,7 +19,8 @@ interface CoreInfo {
 
 async function fetchCoreInfo() {
   try {
-    const info = await request.get<CoreInfo>('/core/info')
+    const data = await request.get<CoreInfo>('/core/info')
+    const info = data as any
     coreVersion.value = info.version || '未安装'
     coreInstalled.value = info.installed
   } catch (error) {

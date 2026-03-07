@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { ProxyNode, NodeFilter, NodeSort, NodeTestResult } from '@/types'
+import type { ProxyNode, NodeFilter, NodeSort } from '@/types'
 import * as nodeApi from '@/api/node'
 
 /**

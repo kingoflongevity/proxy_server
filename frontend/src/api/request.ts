@@ -1,9 +1,6 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import type { ApiResponse, ApiError } from '@/types'
+import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig, AxiosResponse } from 'axios'
+import type { ApiError } from '@/types'
 
-/**
- * 创建Axios实例
- */
 const instance: AxiosInstance = axios.create({
   baseURL: '/api',
   timeout: 30000,
@@ -12,12 +9,8 @@ const instance: AxiosInstance = axios.create({
   },
 })
 
-/**
- * 请求拦截器
- */
 instance.interceptors.request.use(
-  (config) => {
-    // 可以在这里添加token等认证信息
+  (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -29,30 +22,23 @@ instance.interceptors.request.use(
   }
 )
 
-/**
- * 响应拦截器
- */
 instance.interceptors.response.use(
-  (response: AxiosResponse<any>) => {
-    // 处理后端响应格式 {code: 0, message: "success", data: ...}
-    if (response.data && typeof response.data === 'object') {
-      if ('code' in response.data) {
-        if (response.data.code === 0) {
-          return response.data.data
-        }
-        // 业务错误
-        const error: ApiError = {
-          code: response.data.code,
-          message: response.data.message || '请求失败',
-          details: response.data.message,
-        }
-        return Promise.reject(error)
+  (response: AxiosResponse) => {
+    const data = response.data
+    if (data && typeof data === 'object' && 'code' in data) {
+      if (data.code === 0) {
+        return data.data as any
       }
+      const error: ApiError = {
+        code: data.code,
+        message: data.message || '请求失败',
+        details: data.message,
+      }
+      return Promise.reject(error)
     }
-    return response.data
+    return data as any
   },
   (error) => {
-    // HTTP错误
     const apiError: ApiError = {
       code: error.response?.status || 500,
       message: error.response?.data?.message || error.message || '网络请求失败',
@@ -62,15 +48,12 @@ instance.interceptors.response.use(
   }
 )
 
-/**
- * 封装请求方法
- */
 export const request = {
   get<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return instance.get(url, config)
+    return instance.get(url, config) as unknown as Promise<T>
   },
 
-  post<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+  post<T = any>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
     if (data instanceof FormData) {
       const formDataConfig = {
         ...config,
@@ -79,21 +62,21 @@ export const request = {
           'Content-Type': 'multipart/form-data',
         },
       }
-      return instance.post(url, data, formDataConfig)
+      return instance.post(url, data, formDataConfig) as unknown as Promise<T>
     }
-    return instance.post(url, data, config)
+    return instance.post(url, data, config) as unknown as Promise<T>
   },
 
-  put<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return instance.put(url, data, config)
+  put<T = any>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return instance.put(url, data, config) as unknown as Promise<T>
   },
 
-  patch<T = any>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
-    return instance.patch(url, data, config)
+  patch<T = any>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    return instance.patch(url, data, config) as unknown as Promise<T>
   },
 
   delete<T = any>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    return instance.delete(url, config)
+    return instance.delete(url, config) as unknown as Promise<T>
   },
 }
 

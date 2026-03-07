@@ -90,8 +90,7 @@ const router = createRouter({
 /**
  * 路由守卫
  */
-router.beforeEach((to, from, next) => {
-  // 设置页面标题
+router.beforeEach((to, _from, next) => {
   const title = to.meta.title as string
   if (title) {
     document.title = `${title} - Proxy Manager`
