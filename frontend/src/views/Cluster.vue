@@ -80,118 +80,112 @@
       </div>
     </div>
 
-    <Teleport to="body">
-      <div v-if="showScanDialog" class="dialog-overlay" @click.self="showScanDialog = false">
-        <div class="dialog">
-          <div class="dialog-header">
-            <h3>扫描网络</h3>
-            <button type="button" class="close-btn" @click="showScanDialog = false">×</button>
+    <div v-if="showScanDialog" class="dialog-overlay" @click.self="showScanDialog = false">
+      <div class="dialog" @click.stop>
+        <div class="dialog-header">
+          <h3>扫描网络</h3>
+          <button type="button" class="close-btn" @click="showScanDialog = false">×</button>
+        </div>
+        <div class="dialog-body">
+          <div class="form-group">
+            <label>CIDR 网段</label>
+            <input v-model="scanForm.cidr" type="text" placeholder="例如: 192.168.1.0/24" />
           </div>
-          <div class="dialog-body">
-            <div class="form-group">
-              <label>CIDR 网段</label>
-              <input v-model="scanForm.cidr" type="text" placeholder="例如: 192.168.1.0/24" />
-            </div>
-            <div class="form-group">
-              <label>并发数</label>
-              <input v-model.number="scanForm.workers" type="number" min="1" max="100" />
-            </div>
-            <div v-if="scanning" class="scan-progress">
-              <div class="progress-bar">
-                <div class="progress-fill" :style="{ width: scanProgress + '%' }"></div>
-              </div>
-              <span>{{ scanProgress.toFixed(0) }}%</span>
-            </div>
-            <div v-if="scanResults.length > 0" class="scan-results">
-              <h4>发现的服务器 ({{ scanResults.length }})</h4>
-              <div v-for="result in scanResults" :key="result.ip" class="scan-result-item">
-                <span>{{ result.ip }}</span>
-                <span class="os-type">{{ result.osType }}</span>
-                <button type="button" class="btn btn-sm" @click="addScannedServer(result)">添加</button>
-              </div>
-            </div>
+          <div class="form-group">
+            <label>并发数</label>
+            <input v-model.number="scanForm.workers" type="number" min="1" max="100" />
           </div>
-          <div class="dialog-footer">
-            <button type="button" class="btn" @click="showScanDialog = false">取消</button>
-            <button type="button" class="btn btn-primary" :disabled="scanning" @click="startScan">
-              {{ scanning ? '扫描中...' : '开始扫描' }}
-            </button>
+          <div v-if="scanning" class="scan-progress">
+            <div class="progress-bar">
+              <div class="progress-fill" :style="{ width: scanProgress + '%' }"></div>
+            </div>
+            <span>{{ scanProgress.toFixed(0) }}%</span>
+          </div>
+          <div v-if="scanResults.length > 0" class="scan-results">
+            <h4>发现的服务器 ({{ scanResults.length }})</h4>
+            <div v-for="result in scanResults" :key="result.ip" class="scan-result-item">
+              <span>{{ result.ip }}</span>
+              <span class="os-type">{{ result.osType }}</span>
+              <button type="button" class="btn btn-sm" @click="addScannedServer(result)">添加</button>
+            </div>
           </div>
         </div>
+        <div class="dialog-footer">
+          <button type="button" class="btn" @click="showScanDialog = false">取消</button>
+          <button type="button" class="btn btn-primary" :disabled="scanning" @click="startScan">
+            {{ scanning ? '扫描中...' : '开始扫描' }}
+          </button>
+        </div>
       </div>
-    </Teleport>
+    </div>
 
-    <Teleport to="body">
-      <div v-if="showAddServerDialog" class="dialog-overlay" @click.self="showAddServerDialog = false">
-        <div class="dialog">
-          <div class="dialog-header">
-            <h3>添加服务器</h3>
-            <button type="button" class="close-btn" @click="showAddServerDialog = false">×</button>
+    <div v-if="showAddServerDialog" class="dialog-overlay" @click.self="showAddServerDialog = false">
+      <div class="dialog" @click.stop>
+        <div class="dialog-header">
+          <h3>添加服务器</h3>
+          <button type="button" class="close-btn" @click="showAddServerDialog = false">×</button>
+        </div>
+        <form class="dialog-body" @submit.prevent="createServer">
+          <div class="form-group">
+            <label>服务器名称</label>
+            <input v-model="serverForm.name" type="text" required placeholder="输入服务器名称" />
           </div>
-          <form class="dialog-body" @submit.prevent="createServer">
-            <div class="form-group">
-              <label>服务器名称</label>
-              <input v-model="serverForm.name" type="text" required placeholder="输入服务器名称" />
-            </div>
-            <div class="form-group">
-              <label>IP 地址</label>
-              <input v-model="serverForm.ip" type="text" required placeholder="例如: 192.168.1.100" />
-            </div>
-            <div class="form-group">
-              <label>SSH 端口</label>
-              <input v-model.number="serverForm.port" type="number" required placeholder="22" />
-            </div>
-            <div class="form-group">
-              <label>用户名</label>
-              <input v-model="serverForm.username" type="text" required placeholder="root" />
-            </div>
-            <div class="form-group">
-              <label>密码</label>
-              <input v-model="serverForm.password" type="password" required placeholder="输入密码" />
-            </div>
-            <div class="dialog-footer">
-              <button type="button" class="btn" @click="showAddServerDialog = false">取消</button>
-              <button type="submit" class="btn btn-primary">添加</button>
-            </div>
-          </form>
+          <div class="form-group">
+            <label>IP 地址</label>
+            <input v-model="serverForm.ip" type="text" required placeholder="例如: 192.168.1.100" />
+          </div>
+          <div class="form-group">
+            <label>SSH 端口</label>
+            <input v-model.number="serverForm.port" type="number" required placeholder="22" />
+          </div>
+          <div class="form-group">
+            <label>用户名</label>
+            <input v-model="serverForm.username" type="text" required placeholder="root" />
+          </div>
+          <div class="form-group">
+            <label>密码</label>
+            <input v-model="serverForm.password" type="password" required placeholder="输入密码" />
+          </div>
+        </form>
+        <div class="dialog-footer">
+          <button type="button" class="btn" @click="showAddServerDialog = false">取消</button>
+          <button type="submit" class="btn btn-primary">添加</button>
         </div>
       </div>
-    </Teleport>
+    </div>
 
-    <Teleport to="body">
-      <div v-if="showDeployDialog" class="dialog-overlay" @click.self="showDeployDialog = false">
-        <div class="dialog">
-          <div class="dialog-header">
-            <h3>部署代理 - {{ deployingServer?.name }}</h3>
-            <button type="button" class="close-btn" @click="showDeployDialog = false">×</button>
+    <div v-if="showDeployDialog" class="dialog-overlay" @click.self="showDeployDialog = false">
+      <div class="dialog" @click.stop>
+        <div class="dialog-header">
+          <h3>部署代理 - {{ deployingServer?.name }}</h3>
+          <button type="button" class="close-btn" @click="showDeployDialog = false">×</button>
+        </div>
+        <form class="dialog-body" @submit.prevent="startDeploy">
+          <div class="form-group">
+            <label>代理端口</label>
+            <input v-model.number="deployForm.proxyPort" type="number" required placeholder="10808" />
           </div>
-          <form class="dialog-body" @submit.prevent="startDeploy">
-            <div class="form-group">
-              <label>代理端口</label>
-              <input v-model.number="deployForm.proxyPort" type="number" required placeholder="10808" />
+          <div class="form-group">
+            <label>代理类型</label>
+            <select v-model="deployForm.proxyType">
+              <option value="socks">SOCKS5</option>
+              <option value="http">HTTP</option>
+              <option value="mixed">混合</option>
+            </select>
+          </div>
+          <div v-if="deployTask" class="deploy-progress">
+            <div v-for="(step, index) in deployTask.steps" :key="index" class="deploy-step" :class="step.status">
+              <span class="step-name">{{ step.name }}</span>
+              <span class="step-status">{{ step.status }}</span>
             </div>
-            <div class="form-group">
-              <label>代理类型</label>
-              <select v-model="deployForm.proxyType">
-                <option value="socks">SOCKS5</option>
-                <option value="http">HTTP</option>
-                <option value="mixed">混合</option>
-              </select>
-            </div>
-            <div v-if="deployTask" class="deploy-progress">
-              <div v-for="(step, index) in deployTask.steps" :key="index" class="deploy-step" :class="step.status">
-                <span class="step-name">{{ step.name }}</span>
-                <span class="step-status">{{ step.status }}</span>
-              </div>
-            </div>
-            <div class="dialog-footer">
-              <button type="button" class="btn" @click="showDeployDialog = false">取消</button>
-              <button type="submit" class="btn btn-primary" :disabled="deploying">部署</button>
-            </div>
-          </form>
+          </div>
+        </form>
+        <div class="dialog-footer">
+          <button type="button" class="btn" @click="showDeployDialog = false">取消</button>
+          <button type="submit" class="btn btn-primary" :disabled="deploying">部署</button>
         </div>
       </div>
-    </Teleport>
+    </div>
   </div>
 </template>
 
@@ -636,9 +630,7 @@ function formatMemory(mb: number): string {
     grid-template-columns: 1fr;
   }
 }
-</style>
 
-<style lang="scss">
 .dialog-overlay {
   position: fixed;
   top: 0;
@@ -841,13 +833,38 @@ function formatMemory(mb: number): string {
   > span:first-child {
     color: #fff;
     font-size: 13px;
-    font-family: monospace;
   }
 
   .os-type {
     color: #8b95a5;
     font-size: 12px;
     text-transform: capitalize;
+  }
+}
+
+.deploy-steps {
+  margin-top: 16px;
+}
+
+.deploy-step {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #050810;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: 13px;
+
+  &.success .step-status {
+    color: #10b981;
+  }
+
+  &.failed .step-status {
+    color: #ef4444;
+  }
+
+  &.running .step-status {
+    color: #f59e0b;
   }
 }
 </style>
