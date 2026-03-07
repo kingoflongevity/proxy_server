@@ -23,23 +23,23 @@
     <div class="stats-cards" v-if="logStore.stats">
       <div class="stat-card">
         <div class="stat-label">总请求数</div>
-        <div class="stat-value">{{ logStore.stats.total_requests }}</div>
+        <div class="stat-value">{{ logStore.stats.totalRequests }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">总流量</div>
-        <div class="stat-value">{{ formatBytes(logStore.stats.total_traffic) }}</div>
+        <div class="stat-value">{{ formatBytes(logStore.stats.totalTraffic) }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">上传流量</div>
-        <div class="stat-value">{{ formatBytes(logStore.stats.upload_bytes) }}</div>
+        <div class="stat-value">{{ formatBytes(logStore.stats.uploadBytes) }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">下载流量</div>
-        <div class="stat-value">{{ formatBytes(logStore.stats.download_bytes) }}</div>
+        <div class="stat-value">{{ formatBytes(logStore.stats.downloadBytes) }}</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">平均响应时间</div>
-        <div class="stat-value">{{ logStore.stats.avg_response_time_ms }}ms</div>
+        <div class="stat-value">{{ logStore.stats.avgResponseTimeMs }}ms</div>
       </div>
     </div>
 
@@ -98,18 +98,18 @@
           </tr>
           <tr v-for="log in logStore.logs" :key="log.id">
             <td>{{ formatTime(log.timestamp) }}</td>
-            <td>{{ log.client_ip }}</td>
+            <td>{{ log.clientIp }}</td>
             <td>
               <span class="method-badge" :class="log.method.toLowerCase()">{{ log.method }}</span>
             </td>
-            <td class="url-cell" :title="log.url">{{ log.url }}</td>
+            <td class="url-cell" :title="log.domain + log.path">{{ log.domain }}{{ log.path }}</td>
             <td>
-              <span class="status-badge" :class="getStatusClass(log.status_code)">
-                {{ log.status_code }}
+              <span class="status-badge" :class="getStatusClass(log.statusCode)">
+                {{ log.statusCode }}
               </span>
             </td>
-            <td>{{ log.response_time_ms }}ms</td>
-            <td>{{ formatBytes(log.response_size) }}</td>
+            <td>{{ log.durationMs }}ms</td>
+            <td>{{ formatBytes(log.uploadBytes + log.downloadBytes) }}</td>
             <td>
               <button class="btn-link" @click="showLogDetail(log)">详情</button>
             </td>
@@ -139,35 +139,43 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">客户端IP：</span>
-            <span>{{ selectedLog.client_ip }}</span>
+            <span>{{ selectedLog.clientIp }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">服务端IP：</span>
+            <span>{{ selectedLog.serverIp }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">域名：</span>
+            <span>{{ selectedLog.domain }}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">方法：</span>
             <span class="method-badge" :class="selectedLog.method.toLowerCase()">{{ selectedLog.method }}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">URL：</span>
-            <span>{{ selectedLog.url }}</span>
+            <span class="detail-label">路径：</span>
+            <span>{{ selectedLog.path }}</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">请求体：</span>
-            <pre class="code-block">{{ selectedLog.body || '无' }}</pre>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">响应头：</span>
-            <pre class="code-block">{{ JSON.stringify(selectedLog.headers, null, 2) || '无' }}</pre>
+            <span class="detail-label">协议：</span>
+            <span>{{ selectedLog.protocol }}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">状态码：</span>
-            <span class="status-badge" :class="getStatusClass(selectedLog.status_code)">{{ selectedLog.status_code }}</span>
+            <span class="status-badge" :class="getStatusClass(selectedLog.statusCode)">{{ selectedLog.statusCode }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">上传流量：</span>
+            <span>{{ formatBytes(selectedLog.uploadBytes) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">下载流量：</span>
+            <span>{{ formatBytes(selectedLog.downloadBytes) }}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">响应时间：</span>
-            <span>{{ selectedLog.response_time_ms }}ms</span>
-          </div>
-          <div class="detail-row" v-if="selectedLog.error">
-            <span class="detail-label">错误信息：</span>
-            <span class="error-text">{{ selectedLog.error }}</span>
+            <span>{{ selectedLog.durationMs }}ms</span>
           </div>
         </div>
       </div>

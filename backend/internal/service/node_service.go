@@ -285,10 +285,10 @@ func (s *nodeService) Select(id string) error {
 func (s *nodeService) GetStats(id string) (map[string]interface{}, error) {
 	// 返回模拟的统计信息
 	return map[string]interface{}{
-		"uploadSpeed":    0,
-		"downloadSpeed": 0,
-		"uploadTotal":   0,
-		"downloadTotal": 0,
+		"uploadSpeed":     0,
+		"downloadSpeed":   0,
+		"uploadTotal":     0,
+		"downloadTotal":   0,
 		"connectionCount": 0,
 	}, nil
 }
@@ -298,10 +298,16 @@ func (s *nodeService) TestBatch(ids []string) ([]map[string]interface{}, error) 
 	results := make([]map[string]interface{}, 0, len(ids))
 	for _, id := range ids {
 		latency, err := s.Test(id)
+		status := "available"
+		if err != nil || latency == 0 {
+			status = "unavailable"
+		}
 		results = append(results, map[string]interface{}{
-			"id":      id,
-			"latency": latency,
-			"error":   err,
+			"nodeId":   id,
+			"latency":  latency,
+			"status":   status,
+			"testTime": time.Now().Format(time.RFC3339),
+			"error":    err,
 		})
 	}
 	return results, nil

@@ -3,41 +3,37 @@ import { request } from './request'
 export interface TrafficLog {
   id: string
   timestamp: string
-  client_ip: string
+  clientIp: string
+  serverIp: string
+  domain: string
   method: string
-  url: string
   path: string
-  query_string?: string
-  headers?: Record<string, string>
-  body?: string
-  body_size: number
-  user_agent?: string
+  uploadBytes: number
+  downloadBytes: number
+  durationMs: number
+  statusCode: number
   protocol: string
-  status_code: number
-  response_time_ms: number
-  response_size: number
-  error?: string
-  user_id?: string
+  userId?: string
 }
 
 export interface LogStats {
-  total_requests: number
-  total_traffic: number
-  upload_bytes: number
-  download_bytes: number
-  avg_response_time_ms: number
-  status_counts: Record<string, number>
-  top_domains: Array<{
+  totalRequests: number
+  totalTraffic: number
+  uploadBytes: number
+  downloadBytes: number
+  avgResponseTimeMs: number
+  statusCounts: Record<string, number>
+  topDomains: Array<{
     domain: string
-    request_count: number
-    upload_bytes: number
-    download_bytes: number
+    requestCount: number
+    uploadBytes: number
+    downloadBytes: number
   }>
-  top_clients: Array<{
-    client_ip: string
-    request_count: number
-    upload_bytes: number
-    download_bytes: number
+  topClients: Array<{
+    clientIp: string
+    requestCount: number
+    uploadBytes: number
+    downloadBytes: number
   }>
 }
 

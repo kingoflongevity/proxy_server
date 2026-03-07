@@ -93,6 +93,7 @@ async function navigateTo(path: string) {
  * 格式化速度
  */
 function formatSpeed(bytesPerSecond: number): string {
+  if (!bytesPerSecond) return '0 B/s'
   if (bytesPerSecond < 1024) {
     return `${bytesPerSecond} B/s`
   } else if (bytesPerSecond < 1024 * 1024) {
@@ -101,6 +102,13 @@ function formatSpeed(bytesPerSecond: number): string {
     return `${(bytesPerSecond / 1024 / 1024).toFixed(2)} MB/s`
   }
 }
+
+/**
+ * 是否已连接
+ */
+const isConnected = computed(() => {
+  return settingsStore.isConnected || nodeStore.currentNode !== null
+})
 </script>
 
 <template>
@@ -188,9 +196,9 @@ function formatSpeed(bytesPerSecond: number): string {
         <div class="header-right">
           <!-- 连接状态 -->
           <div class="connection-status">
-            <div class="status-indicator" :class="{ connected: settingsStore.isConnected }"></div>
+            <div class="status-indicator" :class="{ connected: isConnected }"></div>
             <span class="status-text">
-              {{ settingsStore.isConnected ? '已连接' : '未连接' }}
+              {{ isConnected ? '已连接' : '未连接' }}
             </span>
           </div>
 

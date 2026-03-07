@@ -631,8 +631,8 @@ async function handleBackup(id: string) {
 }
 
 .cluster-content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
@@ -650,11 +650,20 @@ async function handleBackup(id: string) {
   }
 }
 
+.topology-section {
+  max-height: 400px;
+  overflow: hidden;
+}
+
+.servers-section {
+  flex: 1;
+}
+
 .server-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
-  max-height: 500px;
+  max-height: 600px;
   overflow-y: auto;
 }
 

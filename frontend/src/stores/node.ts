@@ -1,15 +1,46 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { ProxyNode, NodeFilter, NodeSort } from '@/types'
 import * as nodeApi from '@/api/node'
+
+const STORAGE_KEY = 'proxy-manager-node-store'
+
+/**
+ * 从localStorage加载数据
+ */
+function loadFromStorage() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY)
+    if (data) {
+      return JSON.parse(data)
+    }
+  } catch (e) {
+    console.error('加载本地数据失败:', e)
+  }
+  return null
+}
+
+/**
+ * 保存数据到localStorage
+ */
+function saveToStorage(data: { currentNode: ProxyNode | null }) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch (e) {
+    console.error('保存本地数据失败:', e)
+  }
+}
 
 /**
  * 节点管理Store
  */
 export const useNodeStore = defineStore('node', () => {
+  // 从localStorage加载初始数据
+  const savedData = loadFromStorage()
+  
   // 状态
   const nodes = ref<ProxyNode[]>([])
-  const currentNode = ref<ProxyNode | null>(null)
+  const currentNode = ref<ProxyNode | null>(savedData?.currentNode || null)
   const loading = ref(false)
   const testing = ref(false)
   const error = ref<string | null>(null)
@@ -18,6 +49,11 @@ export const useNodeStore = defineStore('node', () => {
     field: 'latency',
     order: 'asc',
   })
+
+  // 监听currentNode变化，自动保存到localStorage
+  watch(currentNode, (newVal) => {
+    saveToStorage({ currentNode: newVal })
+  }, { deep: true })
 
   // 计算属性
   const filteredNodes = computed(() => {

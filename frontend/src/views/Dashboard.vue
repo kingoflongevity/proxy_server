@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useSubscriptionStore, useNodeStore, useSettingsStore } from '@/stores'
 import request from '@/api/request'
 
@@ -21,24 +21,39 @@ async function fetchCoreInfo() {
   try {
     const data = await request.get<CoreInfo>('/core/info')
     const info = data as any
-    coreVersion.value = info.version || '未安装'
-    coreInstalled.value = info.installed
+    coreVersion.value = info?.version || '未安装'
+    coreInstalled.value = info?.installed || false
   } catch (error) {
     console.error('获取内核信息失败:', error)
     coreVersion.value = '未安装'
+    coreInstalled.value = false
   }
 }
 
 onMounted(async () => {
   try {
-    await subscriptionStore.fetchSubscriptions()
-    await nodeStore.fetchNodes()
-    await settingsStore.fetchConnectionStatus()
-    await nodeStore.fetchCurrentNode()
-    await fetchCoreInfo()
+    await Promise.all([
+      subscriptionStore.fetchSubscriptions(),
+      nodeStore.fetchNodes(),
+      settingsStore.fetchConnectionStatus(),
+      nodeStore.fetchCurrentNode(),
+      fetchCoreInfo(),
+    ])
   } catch (error) {
     console.error('加载数据失败:', error)
   }
+})
+
+const isConnected = computed(() => {
+  return settingsStore.isConnected || nodeStore.currentNode !== null
+})
+
+const currentNodeName = computed(() => {
+  return nodeStore.currentNode?.name || '未选择'
+})
+
+const currentNodeLatency = computed(() => {
+  return nodeStore.currentNode?.latency || 0
 })
 
 /**
@@ -153,8 +168,8 @@ function formatTraffic(bytes: number): string {
         </div>
         <div class="stat-content">
           <div class="stat-label">连接状态</div>
-          <div class="stat-value" :class="{ connected: settingsStore.isConnected }">
-            {{ settingsStore.isConnected ? '已连接' : '未连接' }}
+          <div class="stat-value" :class="{ connected: isConnected }">
+            {{ isConnected ? '已连接' : '未连接' }}
           </div>
         </div>
       </div>
@@ -193,7 +208,11 @@ function formatTraffic(bytes: number): string {
       <div class="connection-info">
         <div class="info-item">
           <span class="info-label">当前节点</span>
-          <span class="info-value">{{ nodeStore.currentNode?.name || '未选择' }}</span>
+          <span class="info-value">{{ currentNodeName }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">节点延迟</span>
+          <span class="info-value">{{ currentNodeLatency > 0 ? currentNodeLatency + 'ms' : '-' }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">代理模式</span>
@@ -209,23 +228,23 @@ function formatTraffic(bytes: number): string {
         </div>
         <div class="info-item">
           <span class="info-label">上传速度</span>
-          <span class="info-value">{{ formatSpeed(settingsStore.connectionStatus.uploadSpeed) }}</span>
+          <span class="info-value">{{ formatSpeed(settingsStore.connectionStatus.uploadSpeed || 0) }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">下载速度</span>
-          <span class="info-value">{{ formatSpeed(settingsStore.connectionStatus.downloadSpeed) }}</span>
+          <span class="info-value">{{ formatSpeed(settingsStore.connectionStatus.downloadSpeed || 0) }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">上传流量</span>
-          <span class="info-value">{{ formatTraffic(settingsStore.connectionStatus.uploadTotal) }}</span>
+          <span class="info-value">{{ formatTraffic(settingsStore.connectionStatus.uploadTotal || 0) }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">下载流量</span>
-          <span class="info-value">{{ formatTraffic(settingsStore.connectionStatus.downloadTotal) }}</span>
+          <span class="info-value">{{ formatTraffic(settingsStore.connectionStatus.downloadTotal || 0) }}</span>
         </div>
         <div class="info-item">
           <span class="info-label">连接数</span>
-          <span class="info-value">{{ settingsStore.connectionStatus.connectionCount }}</span>
+          <span class="info-value">{{ settingsStore.connectionStatus.connectionCount || 0 }}</span>
         </div>
       </div>
     </div>

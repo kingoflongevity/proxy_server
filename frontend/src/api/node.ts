@@ -5,14 +5,6 @@ import type { ProxyNode, NodeFilter, NodeSort, NodeTestResult } from '@/types'
  * 节点管理API
  */
 
-interface PageResponse {
-  list: ProxyNode[]
-  total: number
-  page: number
-  page_size: number
-  total_pages: number
-}
-
 /**
  * 获取节点列表
  */
@@ -25,10 +17,16 @@ export function getNodes(params?: {
   items: ProxyNode[]
   total: number
 }> {
-  return request.get<PageResponse>('/nodes', { params }).then((res) => ({
-    items: res.list || [],
-    total: res.total || 0,
-  }))
+  return request.get('/nodes', { params }).then((res: any) => {
+    // 处理不同的响应格式
+    if (Array.isArray(res)) {
+      return { items: res, total: res.length }
+    }
+    if (res && res.list) {
+      return { items: res.list || [], total: res.total || 0 }
+    }
+    return { items: res.items || [], total: res.total || 0 }
+  })
 }
 
 /**
