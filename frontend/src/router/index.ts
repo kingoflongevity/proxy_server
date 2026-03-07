@@ -38,6 +38,15 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: 'cluster',
+        name: 'Cluster',
+        component: () => import('@/views/Cluster.vue'),
+        meta: {
+          title: '集群管理',
+          icon: 'cluster',
+        },
+      },
+      {
         path: 'rules',
         name: 'Rules',
         component: () => import('@/views/Rules.vue'),

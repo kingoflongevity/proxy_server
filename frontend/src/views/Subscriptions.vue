@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useSubscriptionStore } from '@/stores'
 import type { CreateSubscriptionRequest, Subscription } from '@/types'
 
@@ -16,11 +16,12 @@ const formData = ref<CreateSubscriptionRequest>({
   updateInterval: 24,
 })
 
-/**
- * 初始化
- */
 onMounted(async () => {
   await subscriptionStore.fetchSubscriptions()
+})
+
+onUnmounted(() => {
+  showAddDialog.value = false
 })
 
 /**

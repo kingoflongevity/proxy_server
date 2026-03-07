@@ -60,6 +60,20 @@ const (
 	SystemBusy      = 4000
 	ConfigLoadError = 4001
 	DataSaveError   = 4002
+	
+	// 集群相关错误码 (5000-5999)
+	ServerNotFound       = 5000
+	ServerAlreadyExists  = 5001
+	ConnectionFailed     = 5002
+	ConnectionNotFound   = 5003
+	AuthFailed           = 5004
+	SessionCreateFailed  = 5005
+	FileTransferFailed   = 5006
+	DeployFailed         = 5007
+	BackupFailed         = 5008
+	RestoreFailed        = 5009
+	ScaleFailed          = 5010
+	GroupNotFound        = 5011
 )
 
 // 错误消息映射

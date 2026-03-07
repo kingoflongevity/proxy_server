@@ -105,9 +105,10 @@ func main() {
 	ruleHandler := handler.NewRuleHandler(ruleService)
 	systemHandler := handler.NewSystemHandler(systemService)
 	logHandler := handler.NewLogHandler(logService)
+	clusterHandler := handler.NewClusterHandler(nil, nil)
 	
 	// 设置路由
-	r := router.SetupRouter(subHandler, nodeHandler, ruleHandler, systemHandler, logHandler)
+	r := router.SetupRouter(subHandler, nodeHandler, ruleHandler, systemHandler, logHandler, clusterHandler)
 	
 	// 创建HTTP服务器
 	srv := &http.Server{

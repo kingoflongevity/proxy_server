@@ -1,7 +1,6 @@
 package router
 
 import (
-	"net/http"
 	"proxy_server/internal/handler"
 	"proxy_server/internal/middleware"
 
@@ -15,6 +14,7 @@ func SetupRouter(
 	ruleHandler *handler.RuleHandler,
 	systemHandler *handler.SystemHandler,
 	logHandler *handler.LogHandler,
+	clusterHandler *handler.ClusterHandler,
 ) *gin.Engine {
 	r := gin.New()
 	
@@ -113,6 +113,58 @@ func SetupRouter(
 		api.GET("/core/info", systemHandler.GetCoreInfo)
 		api.POST("/core/update", systemHandler.UpdateCore)
 		api.POST("/core/upload", systemHandler.UploadCore)
+		
+		// ====== 集群管理API ======
+		if clusterHandler != nil {
+			cluster := api.Group("/cluster")
+			{
+				// 服务器管理
+				servers := cluster.Group("/servers")
+				{
+					servers.GET("", clusterHandler.ListServers)
+					servers.GET("/:id", clusterHandler.GetServer)
+					servers.POST("", clusterHandler.CreateServer)
+					servers.PUT("/:id", clusterHandler.UpdateServer)
+					servers.DELETE("/:id", clusterHandler.DeleteServer)
+					servers.POST("/:id/test", clusterHandler.TestConnection)
+					servers.POST("/:id/start", clusterHandler.StartProxy)
+					servers.POST("/:id/stop", clusterHandler.StopProxy)
+					servers.POST("/:id/restart", clusterHandler.RestartProxy)
+					servers.GET("/:id/status", clusterHandler.GetProxyStatus)
+				}
+				
+				// 扫描管理
+				cluster.POST("/scan", clusterHandler.StartScan)
+				cluster.GET("/scan/:id", clusterHandler.GetScanTask)
+				cluster.POST("/scan/:id/cancel", clusterHandler.CancelScan)
+				cluster.POST("/scan/quick", clusterHandler.QuickScan)
+				
+				// 部署管理
+				cluster.POST("/deploy", clusterHandler.DeployProxy)
+				cluster.GET("/deploy/:id", clusterHandler.GetDeployTask)
+				cluster.POST("/deploy/batch", clusterHandler.BatchDeploy)
+				
+				// 备份管理
+				cluster.POST("/backups", clusterHandler.CreateBackup)
+				cluster.GET("/backups", clusterHandler.ListBackups)
+				cluster.POST("/backups/restore", clusterHandler.RestoreBackup)
+				cluster.DELETE("/backups/:id", clusterHandler.DeleteBackup)
+				
+				// 伸缩管理
+				cluster.PUT("/scale/policy", clusterHandler.UpdateScalePolicy)
+				cluster.POST("/scale/up", clusterHandler.ScaleUp)
+				cluster.POST("/scale/down", clusterHandler.ScaleDown)
+				cluster.GET("/scale/events", clusterHandler.GetScaleEvents)
+				
+				// 分组管理
+				cluster.GET("/groups", clusterHandler.ListGroups)
+				cluster.POST("/groups", clusterHandler.CreateGroup)
+				cluster.GET("/groups/:id/metrics", clusterHandler.GetGroupMetrics)
+				
+				// 拓扑图
+				cluster.GET("/topology", clusterHandler.GetTopology)
+			}
+		}
 	}
 	
 	return r

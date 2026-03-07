@@ -38,6 +38,12 @@ const menuItems = [
     icon: 'nodes',
   },
   {
+    path: '/cluster',
+    name: 'Cluster',
+    title: '集群管理',
+    icon: 'cluster',
+  },
+  {
     path: '/rules',
     name: 'Rules',
     title: '规则配置',
@@ -72,32 +78,26 @@ function toggleCollapse() {
 /**
  * 导航到指定路由
  */
-function navigateTo(path: string) {
-  if (route.path !== path) {
-    router.push(path).then(() => {
-      routeKey.value++
-    })
+async function navigateTo(path: string) {
+  if (route.path === path) {
+    routeKey.value++
+    return
+  }
+  
+  try {
+    await router.push(path)
+  } catch (error) {
+    console.error('导航失败:', error)
   }
 }
 
 /**
- * 监听路由变化，重新加载数据
+ * 监听路由变化
  */
 watch(
   () => route.path,
-  async () => {
-    // 路由变化时刷新数据
-    if (route.path === '/dashboard') {
-      const { useSubscriptionStore, useNodeStore, useSettingsStore } = await import('@/stores')
-      const subscriptionStore = useSubscriptionStore()
-      const nodeStore = useNodeStore()
-      const settingsStore = useSettingsStore()
-      await Promise.all([
-        subscriptionStore.fetchSubscriptions(),
-        nodeStore.fetchNodes(),
-        settingsStore.fetchConnectionStatus(),
-      ])
-    }
+  () => {
+    routeKey.value++
   }
 )
 
