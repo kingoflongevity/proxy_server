@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useSubscriptionStore } from '@/stores'
 import type { CreateSubscriptionRequest, Subscription } from '@/types'
 
 const subscriptionStore = useSubscriptionStore()
+const route = useRoute()
 
 const showAddDialog = ref(false)
 const editingSubscription = ref<Subscription | null>(null)
@@ -24,6 +26,17 @@ onUnmounted(() => {
   showAddDialog.value = false
   editingSubscription.value = null
 })
+
+// 监听路由变化，当离开当前页面时关闭对话框
+watch(
+  () => route.path,
+  (newPath, oldPath) => {
+    if (oldPath === '/subscriptions' && newPath !== '/subscriptions') {
+      showAddDialog.value = false
+      editingSubscription.value = null
+    }
+  }
+)
 
 /**
  * 打开添加对话框

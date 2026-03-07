@@ -190,9 +190,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import request from '@/api/request'
 import TopologyGraph from '@/components/TopologyGraph.vue'
+
+const route = useRoute()
 
 interface ClusterServer {
   id: string
@@ -257,6 +260,29 @@ onMounted(async () => {
   await fetchServers()
   await fetchTopology()
 })
+
+onUnmounted(() => {
+  // 清理所有对话框状态
+  showScanDialog.value = false
+  showAddServerDialog.value = false
+  showDeployDialog.value = false
+  scanning.value = false
+  deploying.value = false
+})
+
+// 监听路由变化，当离开当前页面时关闭所有对话框
+watch(
+  () => route.path,
+  (newPath, oldPath) => {
+    if (oldPath === '/cluster' && newPath !== '/cluster') {
+      showScanDialog.value = false
+      showAddServerDialog.value = false
+      showDeployDialog.value = false
+      scanning.value = false
+      deploying.value = false
+    }
+  }
+)
 
 async function fetchServers() {
   try {
