@@ -231,7 +231,7 @@ func (s *nodeService) Connect(nodeID string) error {
 	status.CurrentNode = node
 	s.systemRepo.SaveStatus(status)
 
-	logger.Info("连接节点成功: %s (SOCKS5: 127.0.0.1:10808, HTTP: 127.0.0.1:10809)", node.Name)
+	logger.Info("连接节点成功: %s (SOCKS5: 0.0.0.0:10808, HTTP: 0.0.0.0:10809)", node.Name)
 	return nil
 }
 

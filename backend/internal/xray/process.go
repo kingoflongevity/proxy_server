@@ -10,11 +10,14 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
 	"proxy_server/internal/model"
+	"proxy_server/pkg/broadcaster"
 	"proxy_server/pkg/logger"
 )
 
@@ -180,14 +183,52 @@ func (pm *ProcessManager) GetLogs() <-chan string {
 	return pm.logChan
 }
 
-// readOutput 读取进程输出
+// readOutput 读取进程输出并解析流量日志
+// Xray访问日志格式: 2024/01/01 12:00:00 [Info] [socks-in] 192.168.1.100:12345 accepted tcp:google.com:443
 func (pm *ProcessManager) readOutput(reader io.Reader, source string) {
 	scanner := bufio.NewScanner(reader)
+	
+	// 匹配Xray访问日志的正则表达式
+	accessLogPattern := regexp.MustCompile(`(\d{4}/\d{2}/\d{2}\s+\d{2}:\d{2}:\d{2})\s+\[(\w+)\]\s+\[([^\]]+)\]\s+(.+)`)
+	// 匹配accepted/rejected行
+	trafficPattern := regexp.MustCompile(`(\d+\.\d+\.\d+\.\d+):(\d+)\s+(accepted|rejected)\s+(tcp|udp):([^\s]+)`)
+	
 	for scanner.Scan() {
 		line := scanner.Text()
+		
+		// 发送到日志通道
 		select {
 		case pm.logChan <- fmt.Sprintf("[%s] %s", source, line):
 		default:
+		}
+		
+		// 解析访问日志
+		if matches := accessLogPattern.FindStringSubmatch(line); matches != nil {
+			logLevel := matches[2]
+			inboundTag := matches[3]
+			message := matches[4]
+			
+			// 检查是否是流量日志
+			if trafficMatches := trafficPattern.FindStringSubmatch(message); trafficMatches != nil {
+				clientIP := trafficMatches[1]
+				clientPort := trafficMatches[2]
+				action := trafficMatches[3]
+				protocol := trafficMatches[4]
+				target := trafficMatches[5]
+				
+				// 构建流量日志消息
+				trafficMsg := fmt.Sprintf("[%s] %s %s -> %s (%s)", 
+					inboundTag, 
+					action, 
+					fmt.Sprintf("%s:%s", clientIP, clientPort),
+					target,
+					protocol)
+				
+				// 广播流量日志到前端
+				broadcaster.BroadcastLog(strings.ToUpper(logLevel), trafficMsg, "traffic")
+				
+				logger.Info("代理流量: %s", trafficMsg)
+			}
 		}
 	}
 }

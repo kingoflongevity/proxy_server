@@ -173,7 +173,9 @@ func (g *ConfigGenerator) GenerateConfig(node *model.Node) (*XrayConfig, error) 
 
 	config := &XrayConfig{
 		Log: &LogConfig{
-			Loglevel: "warning",
+			Loglevel: "info",
+			Access:   "", // 空字符串表示输出到stdout
+			Error:    "", // 空字符串表示输出到stderr
 		},
 		Inbounds: []InboundConfig{
 			g.generateSOCKSInbound(),
@@ -191,16 +193,17 @@ func (g *ConfigGenerator) GenerateConfig(node *model.Node) (*XrayConfig, error) 
 }
 
 // generateSOCKSInbound 生成SOCKS5入站配置
+// 监听0.0.0.0允许局域网设备连接
 func (g *ConfigGenerator) generateSOCKSInbound() InboundConfig {
 	settings, _ := json.Marshal(map[string]interface{}{
 		"udp": true,
-		"ip":  "127.0.0.1",
+		"ip":  "0.0.0.0",
 	})
 
 	return InboundConfig{
 		Tag:      "socks-in",
 		Port:     g.localPort,
-		Listen:   "127.0.0.1",
+		Listen:   "0.0.0.0",
 		Protocol: "socks",
 		Settings: settings,
 		Sniffing: &SniffingConfig{
@@ -211,6 +214,7 @@ func (g *ConfigGenerator) generateSOCKSInbound() InboundConfig {
 }
 
 // generateHTTPInbound 生成HTTP入站配置
+// 监听0.0.0.0允许局域网设备连接
 func (g *ConfigGenerator) generateHTTPInbound() InboundConfig {
 	settings, _ := json.Marshal(map[string]interface{}{
 		"allowTransparent": false,
@@ -219,7 +223,7 @@ func (g *ConfigGenerator) generateHTTPInbound() InboundConfig {
 	return InboundConfig{
 		Tag:      "http-in",
 		Port:     g.localPort + 1, // HTTP端口为SOCKS5端口+1
-		Listen:   "127.0.0.1",
+		Listen:   "0.0.0.0",
 		Protocol: "http",
 		Settings: settings,
 		Sniffing: &SniffingConfig{
