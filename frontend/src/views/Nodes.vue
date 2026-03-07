@@ -324,15 +324,21 @@ function resetFilters() {
   justify-content: space-between;
 }
 
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
-  background-color: $bg-color-light;
-  border: 1px solid $border-color;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-base;
-  color: $text-color-primary;
+  color: var(--text-primary);
   font-size: $font-size-base;
   cursor: pointer;
   transition: all $transition-duration $transition-timing;
@@ -343,7 +349,8 @@ function resetFilters() {
   }
 
   &:hover:not(:disabled) {
-    background-color: $bg-color-lighter;
+    background-color: var(--bg-secondary);
+    border-color: var(--primary-color);
   }
 
   &:disabled {
@@ -352,12 +359,12 @@ function resetFilters() {
   }
 
   &.btn-primary {
-    background-color: $primary-color;
-    border-color: $primary-color;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: lighten($primary-color, 10%);
+      background-color: #3d7eff;
     }
   }
 
@@ -371,9 +378,9 @@ function resetFilters() {
   display: flex;
   gap: $spacing-md;
   padding: $spacing-md;
-  background-color: $bg-color-light;
+  background-color: var(--bg-secondary);
   border-radius: $border-radius-base;
-  border: 1px solid $border-color;
+  border: 1px solid var(--border-color);
 }
 
 .search-box {
@@ -382,25 +389,25 @@ function resetFilters() {
   align-items: center;
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
-  background-color: $bg-color-darker;
-  border: 1px solid $border-color;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-base;
 
   svg {
     width: 16px;
     height: 16px;
-    color: $text-color-secondary;
+    color: var(--text-secondary);
   }
 
   input {
     flex: 1;
     background: none;
     border: none;
-    color: $text-color-primary;
+    color: var(--text-primary);
     font-size: $font-size-base;
 
     &::placeholder {
-      color: $text-color-secondary;
+      color: var(--text-tertiary);
     }
 
     &:focus {
@@ -416,28 +423,28 @@ function resetFilters() {
 
   label {
     font-size: $font-size-sm;
-    color: $text-color-secondary;
+    color: var(--text-secondary);
   }
 
   select {
     padding: $spacing-sm $spacing-md;
-    background-color: $bg-color-darker;
-    border: 1px solid $border-color;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
     border-radius: $border-radius-base;
-    color: $text-color-primary;
+    color: var(--text-primary);
     font-size: $font-size-base;
 
     &:focus {
-      border-color: $primary-color;
+      border-color: var(--primary-color);
       outline: none;
     }
   }
 }
 
 .nodes-table {
-  background-color: $bg-color-light;
+  background-color: var(--bg-secondary);
   border-radius: $border-radius-lg;
-  border: 1px solid $border-color;
+  border: 1px solid var(--border-color);
   overflow: hidden;
 
   table {
@@ -446,7 +453,7 @@ function resetFilters() {
   }
 
   thead {
-    background-color: $bg-color-darker;
+    background-color: var(--bg-tertiary);
   }
 
   th {
@@ -454,15 +461,15 @@ function resetFilters() {
     text-align: left;
     font-size: $font-size-sm;
     font-weight: 500;
-    color: $text-color-secondary;
-    border-bottom: 1px solid $border-color;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
 
     &.sortable {
       cursor: pointer;
       user-select: none;
 
       &:hover {
-        color: $text-color-primary;
+        color: var(--text-primary);
       }
     }
   }
@@ -470,17 +477,17 @@ function resetFilters() {
   td {
     padding: $spacing-md;
     font-size: $font-size-sm;
-    color: $text-color-primary;
-    border-bottom: 1px solid $border-color;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
   }
 
   tr {
     &:hover {
-      background-color: $bg-color-darker;
+      background-color: var(--bg-tertiary);
     }
 
     &.selected {
-      background-color: rgba($primary-color, 0.1);
+      background-color: rgba(22, 93, 255, 0.1);
     }
   }
 
@@ -495,14 +502,14 @@ function resetFilters() {
 
 .node-address {
   font-family: monospace;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 }
 
 .type-badge {
   display: inline-block;
   padding: 2px $spacing-sm;
-  background-color: rgba($primary-color, 0.1);
-  color: $primary-color;
+  background-color: rgba(22, 93, 255, 0.1);
+  color: var(--primary-color);
   border-radius: $border-radius-sm;
   font-size: $font-size-xs;
   font-weight: 500;
@@ -512,15 +519,15 @@ function resetFilters() {
   font-weight: 500;
 
   &.latency-good {
-    color: $success-color;
+    color: var(--success-color);
   }
 
   &.latency-medium {
-    color: $warning-color;
+    color: var(--warning-color);
   }
 
   &.latency-bad {
-    color: $error-color;
+    color: var(--error-color);
   }
 }
 
@@ -532,23 +539,23 @@ function resetFilters() {
   font-weight: 500;
 
   &.success {
-    background-color: rgba($success-color, 0.1);
-    color: $success-color;
+    background-color: rgba(0, 200, 83, 0.15);
+    color: var(--success-color);
   }
 
   &.error {
-    background-color: rgba($error-color, 0.1);
-    color: $error-color;
+    background-color: rgba(255, 71, 87, 0.15);
+    color: var(--error-color);
   }
 
   &.warning {
-    background-color: rgba($warning-color, 0.1);
-    color: $warning-color;
+    background-color: rgba(255, 184, 0, 0.15);
+    color: var(--warning-color);
   }
 
   &.secondary {
-    background-color: rgba($text-color-secondary, 0.1);
-    color: $text-color-secondary;
+    background-color: rgba(139, 149, 165, 0.15);
+    color: var(--text-secondary);
   }
 }
 
@@ -567,7 +574,7 @@ function resetFilters() {
   align-items: center;
   justify-content: center;
   padding: $spacing-xl * 2;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 
   svg {
     width: 64px;
@@ -576,7 +583,6 @@ function resetFilters() {
   }
 }
 
-// 响应式
 @media (max-width: $breakpoint-md) {
   .filters {
     flex-direction: column;

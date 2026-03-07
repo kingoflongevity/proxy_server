@@ -10,14 +10,73 @@ import type {
 } from '@/types'
 import * as settingsApi from '@/api/settings'
 
+const THEME_STORAGE_KEY = 'proxy-manager-theme'
+const LANGUAGE_STORAGE_KEY = 'proxy-manager-language'
+
+/**
+ * 从localStorage加载主题
+ */
+function loadThemeFromStorage(): Theme {
+  try {
+    const theme = localStorage.getItem(THEME_STORAGE_KEY)
+    if (theme && ['dark', 'light', 'auto'].includes(theme)) {
+      return theme as Theme
+    }
+  } catch (e) {
+    console.error('加载主题失败:', e)
+  }
+  return 'dark'
+}
+
+/**
+ * 保存主题到localStorage
+ */
+function saveThemeToStorage(theme: Theme) {
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, theme)
+  } catch (e) {
+    console.error('保存主题失败:', e)
+  }
+}
+
+/**
+ * 从localStorage加载语言
+ */
+function loadLanguageFromStorage(): Language {
+  try {
+    const language = localStorage.getItem(LANGUAGE_STORAGE_KEY)
+    if (language) {
+      return language as Language
+    }
+  } catch (e) {
+    console.error('加载语言失败:', e)
+  }
+  return 'zh-CN'
+}
+
+/**
+ * 保存语言到localStorage
+ */
+function saveLanguageToStorage(language: Language) {
+  try {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, language)
+  } catch (e) {
+    console.error('保存语言失败:', e)
+  }
+}
+
 /**
  * 系统设置Store
  */
 export const useSettingsStore = defineStore('settings', () => {
+  // 从localStorage加载初始值
+  const savedTheme = loadThemeFromStorage()
+  const savedLanguage = loadLanguageFromStorage()
+
   // 状态
   const settings = ref<SystemSettings>({
-    theme: 'dark',
-    language: 'zh-CN',
+    theme: savedTheme,
+    language: savedLanguage,
     autoStart: false,
     silentStart: false,
     allowLan: true,
@@ -297,6 +356,8 @@ export const useSettingsStore = defineStore('settings', () => {
     } else {
       root.setAttribute('data-theme', theme)
     }
+    // 保存主题到localStorage
+    saveThemeToStorage(theme)
   }
 
   /**
@@ -305,6 +366,8 @@ export const useSettingsStore = defineStore('settings', () => {
   function applyLanguage(language: Language) {
     // 这里可以集成i18n
     document.documentElement.setAttribute('lang', language)
+    // 保存语言到localStorage
+    saveLanguageToStorage(language)
   }
 
   /**

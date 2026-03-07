@@ -628,7 +628,7 @@ function formatMemory(bytes: number): string {
 .tabs {
   display: flex;
   gap: $spacing-xs;
-  border-bottom: 1px solid $border-color;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .tab {
@@ -636,26 +636,34 @@ function formatMemory(bytes: number): string {
   background: none;
   border: none;
   border-bottom: 2px solid transparent;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
   font-size: $font-size-base;
   cursor: pointer;
   transition: all $transition-duration $transition-timing;
 
   &:hover {
-    color: $text-color-primary;
+    color: var(--text-primary);
   }
 
   &.active {
-    color: $primary-color;
-    border-bottom-color: $primary-color;
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
   }
 }
 
 .settings-section {
-  background-color: $bg-color-light;
+  background-color: var(--bg-secondary);
   border-radius: $border-radius-lg;
-  border: 1px solid $border-color;
+  border: 1px solid var(--border-color);
   overflow: hidden;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: $spacing-lg;
+  padding-bottom: $spacing-sm;
 }
 
 .setting-item {
@@ -663,7 +671,7 @@ function formatMemory(bytes: number): string {
   align-items: flex-start;
   justify-content: space-between;
   padding: $spacing-lg;
-  border-bottom: 1px solid $border-color;
+  border-bottom: 1px solid var(--border-color);
 
   &:last-child {
     border-bottom: none;
@@ -676,13 +684,13 @@ function formatMemory(bytes: number): string {
   h4 {
     font-size: $font-size-base;
     font-weight: 500;
-    color: $text-color-primary;
+    color: var(--text-primary);
     margin-bottom: $spacing-xs;
   }
 
   p {
     font-size: $font-size-sm;
-    color: $text-color-secondary;
+    color: var(--text-secondary);
   }
 }
 
@@ -695,16 +703,20 @@ input[type='text'],
 input[type='number'],
 select {
   padding: $spacing-sm $spacing-md;
-  background-color: $bg-color-darker;
-  border: 1px solid $border-color;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-base;
-  color: $text-color-primary;
+  color: var(--text-primary);
   font-size: $font-size-base;
   min-width: 200px;
 
   &:focus {
-    border-color: $primary-color;
+    border-color: var(--primary-color);
     outline: none;
+  }
+
+  &::placeholder {
+    color: var(--text-tertiary);
   }
 }
 
@@ -719,7 +731,7 @@ select {
   gap: $spacing-sm;
   cursor: pointer;
   font-size: $font-size-sm;
-  color: $text-color-primary;
+  color: var(--text-primary);
 
   input[type='radio'] {
     width: auto;
@@ -738,7 +750,7 @@ select {
     height: 0;
 
     &:checked + .slider {
-      background-color: $primary-color;
+      background-color: var(--primary-color);
 
       &:before {
         transform: translateX(24px);
@@ -753,7 +765,7 @@ select {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: $bg-color-lighter;
+    background-color: var(--bg-tertiary);
     transition: $transition-duration;
     border-radius: 24px;
 
@@ -784,11 +796,11 @@ select {
   font-size: $font-size-sm;
 
   .label {
-    color: $text-color-secondary;
+    color: var(--text-secondary);
   }
 
   .value {
-    color: $text-color-primary;
+    color: var(--text-primary);
     font-weight: 500;
   }
 }
@@ -803,29 +815,29 @@ select {
   align-items: center;
   justify-content: center;
   padding: $spacing-sm $spacing-md;
-  background-color: $bg-color-darker;
-  border: 1px solid $border-color;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-base;
-  color: $text-color-primary;
+  color: var(--text-primary);
   font-size: $font-size-sm;
   cursor: pointer;
   transition: all $transition-duration $transition-timing;
 
   &:hover {
-    background-color: $bg-color-lighter;
+    background-color: var(--bg-secondary);
+    border-color: var(--primary-color);
   }
 
   &.btn-danger {
-    color: $error-color;
-    border-color: $error-color;
+    color: var(--error-color);
+    border-color: var(--error-color);
 
     &:hover {
-      background-color: rgba($error-color, 0.1);
+      background-color: rgba(255, 71, 87, 0.1);
     }
   }
 }
 
-// 响应式
 @media (max-width: $breakpoint-md) {
   .setting-item {
     flex-direction: column;

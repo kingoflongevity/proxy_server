@@ -302,9 +302,9 @@ function getStatusClass(status: number): string {
 }
 
 .page-title {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .header-actions {
@@ -324,20 +324,24 @@ function getStatusClass(status: number): string {
   transition: all 0.2s;
 
   &.btn-secondary {
-    background: #374151;
-    color: #fff;
-    &:hover { background: #4b5563; }
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    &:hover { 
+      background: var(--bg-secondary);
+      border-color: var(--primary-color);
+    }
   }
 
   &.btn-danger {
-    background: #dc2626;
+    background: var(--error-color);
     color: #fff;
     &:hover { background: #b91c1c; }
   }
 
   &.btn-link {
     background: none;
-    color: #3b82f6;
+    color: var(--primary-color);
     padding: 4px 8px;
     &:hover { text-decoration: underline; }
   }
@@ -361,22 +365,29 @@ function getStatusClass(status: number): string {
 }
 
 .stat-card {
-  background: #1f2937;
+  background: var(--bg-secondary);
   border-radius: 8px;
   padding: 16px;
   text-align: center;
+  border: 1px solid var(--border-color);
+  transition: all 0.3s;
+
+  &:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(22, 93, 255, 0.15);
+  }
 }
 
 .stat-label {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--text-secondary);
   margin-bottom: 8px;
 }
 
 .stat-value {
   font-size: 24px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .filter-bar {
@@ -392,29 +403,34 @@ function getStatusClass(status: number): string {
   gap: 8px;
 
   label {
-    color: #9ca3af;
+    color: var(--text-secondary);
     font-size: 14px;
   }
 
   select, input {
-    background: #1f2937;
-    border: 1px solid #374151;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     padding: 6px 12px;
-    color: #fff;
+    color: var(--text-primary);
     font-size: 14px;
 
     &:focus {
       outline: none;
-      border-color: #3b82f6;
+      border-color: var(--primary-color);
+    }
+
+    &::placeholder {
+      color: var(--text-tertiary);
     }
   }
 }
 
 .logs-table-container {
-  background: #1f2937;
+  background: var(--bg-secondary);
   border-radius: 8px;
   overflow: hidden;
+  border: 1px solid var(--border-color);
 }
 
 .logs-table {
@@ -424,30 +440,30 @@ function getStatusClass(status: number): string {
   th, td {
     padding: 12px 16px;
     text-align: left;
-    border-bottom: 1px solid #374151;
+    border-bottom: 1px solid var(--border-color);
   }
 
   th {
-    background: #111827;
-    color: #9ca3af;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
     font-weight: 500;
     font-size: 12px;
     text-transform: uppercase;
   }
 
   td {
-    color: #d1d5db;
+    color: var(--text-primary);
     font-size: 14px;
   }
 
   tbody tr:hover {
-    background: #374151;
+    background: var(--bg-tertiary);
   }
 }
 
 .loading-cell, .empty-cell {
   text-align: center;
-  color: #9ca3af;
+  color: var(--text-secondary);
   padding: 40px !important;
 }
 
@@ -464,10 +480,10 @@ function getStatusClass(status: number): string {
   font-size: 12px;
   font-weight: 500;
 
-  &.get { background: #065f46; color: #34d399; }
-  &.post { background: #1e40af; color: #60a5fa; }
-  &.put { background: #92400e; color: #fbbf24; }
-  &.delete { background: #991b1b; color: #f87171; }
+  &.get { background: rgba(0, 200, 83, 0.15); color: var(--success-color); }
+  &.post { background: rgba(22, 93, 255, 0.15); color: var(--primary-color); }
+  &.put { background: rgba(255, 184, 0, 0.15); color: var(--warning-color); }
+  &.delete { background: rgba(255, 71, 87, 0.15); color: var(--error-color); }
 }
 
 .status-badge {
@@ -476,10 +492,10 @@ function getStatusClass(status: number): string {
   font-size: 12px;
   font-weight: 500;
 
-  &.success { background: #065f46; color: #34d399; }
-  &.redirect { background: #1e40af; color: #60a5fa; }
-  &.client-error { background: #92400e; color: #fbbf24; }
-  &.server-error { background: #991b1b; color: #f87171; }
+  &.success { background: rgba(0, 200, 83, 0.15); color: var(--success-color); }
+  &.redirect { background: rgba(22, 93, 255, 0.15); color: var(--primary-color); }
+  &.client-error { background: rgba(255, 184, 0, 0.15); color: var(--warning-color); }
+  &.server-error { background: rgba(255, 71, 87, 0.15); color: var(--error-color); }
 }
 
 .pagination {
@@ -491,7 +507,7 @@ function getStatusClass(status: number): string {
 }
 
 .page-info {
-  color: #9ca3af;
+  color: var(--text-secondary);
 }
 
 .modal {
@@ -508,12 +524,13 @@ function getStatusClass(status: number): string {
 }
 
 .modal-content {
-  background: #1f2937;
+  background: var(--bg-secondary);
   border-radius: 12px;
   width: 90%;
   max-width: 800px;
   max-height: 80vh;
   overflow: auto;
+  border: 1px solid var(--border-color);
 }
 
 .modal-header {
@@ -521,10 +538,10 @@ function getStatusClass(status: number): string {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  border-bottom: 1px solid #374151;
+  border-bottom: 1px solid var(--border-color);
 
   h3 {
-    color: #fff;
+    color: var(--text-primary);
     margin: 0;
   }
 }
@@ -532,10 +549,10 @@ function getStatusClass(status: number): string {
 .close-btn {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--text-secondary);
   font-size: 24px;
   cursor: pointer;
-  &:hover { color: #fff; }
+  &:hover { color: var(--text-primary); }
 }
 
 .modal-body {
@@ -546,23 +563,24 @@ function getStatusClass(status: number): string {
   margin-bottom: 16px;
 
   .detail-label {
-    color: #9ca3af;
+    color: var(--text-secondary);
     margin-right: 8px;
   }
 
   .error-text {
-    color: #f87171;
+    color: var(--error-color);
   }
 }
 
 .code-block {
-  background: #111827;
+  background: var(--bg-tertiary);
   padding: 12px;
   border-radius: 6px;
-  color: #d1d5db;
+  color: var(--text-primary);
   font-size: 12px;
   overflow-x: auto;
   white-space: pre-wrap;
   word-break: break-all;
+  border: 1px solid var(--border-color);
 }
 </style>

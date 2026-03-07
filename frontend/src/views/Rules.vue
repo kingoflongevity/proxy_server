@@ -356,15 +356,21 @@ function getActionColor(action: RuleAction): string {
   justify-content: space-between;
 }
 
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
-  background-color: $bg-color-light;
-  border: 1px solid $border-color;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-base;
-  color: $text-color-primary;
+  color: var(--text-primary);
   font-size: $font-size-base;
   cursor: pointer;
   transition: all $transition-duration $transition-timing;
@@ -375,25 +381,26 @@ function getActionColor(action: RuleAction): string {
   }
 
   &:hover {
-    background-color: $bg-color-lighter;
+    background-color: var(--bg-secondary);
+    border-color: var(--primary-color);
   }
 
   &.btn-primary {
-    background-color: $primary-color;
-    border-color: $primary-color;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
     color: white;
 
     &:hover {
-      background-color: lighten($primary-color, 10%);
+      background-color: #3d7eff;
     }
   }
 
   &.btn-danger {
-    color: $error-color;
-    border-color: $error-color;
+    color: var(--error-color);
+    border-color: var(--error-color);
 
     &:hover {
-      background-color: rgba($error-color, 0.1);
+      background-color: rgba(255, 71, 87, 0.1);
     }
   }
 
@@ -410,11 +417,16 @@ function getActionColor(action: RuleAction): string {
 }
 
 .rule-card {
-  background-color: $bg-color-light;
-  border: 1px solid $border-color;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-base;
   padding: $spacing-md;
   transition: all $transition-duration $transition-timing;
+
+  &:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(22, 93, 255, 0.15);
+  }
 
   &.disabled {
     opacity: 0.5;
@@ -437,8 +449,8 @@ function getActionColor(action: RuleAction): string {
 .rule-type {
   display: inline-block;
   padding: 2px $spacing-sm;
-  background-color: rgba($primary-color, 0.1);
-  color: $primary-color;
+  background-color: rgba(22, 93, 255, 0.1);
+  color: var(--primary-color);
   border-radius: $border-radius-sm;
   font-size: $font-size-xs;
   font-weight: 500;
@@ -447,7 +459,7 @@ function getActionColor(action: RuleAction): string {
 .rule-pattern {
   font-family: monospace;
   font-size: $font-size-sm;
-  color: $text-color-primary;
+  color: var(--text-primary);
 }
 
 .rule-actions {
@@ -476,38 +488,38 @@ function getActionColor(action: RuleAction): string {
   font-weight: 500;
 
   &.primary {
-    background-color: rgba($primary-color, 0.1);
-    color: $primary-color;
+    background-color: rgba(22, 93, 255, 0.15);
+    color: var(--primary-color);
   }
 
   &.success {
-    background-color: rgba($success-color, 0.1);
-    color: $success-color;
+    background-color: rgba(0, 200, 83, 0.15);
+    color: var(--success-color);
   }
 
   &.error {
-    background-color: rgba($error-color, 0.1);
-    color: $error-color;
+    background-color: rgba(255, 71, 87, 0.15);
+    color: var(--error-color);
   }
 
   &.warning {
-    background-color: rgba($warning-color, 0.1);
-    color: $warning-color;
+    background-color: rgba(255, 184, 0, 0.15);
+    color: var(--warning-color);
   }
 }
 
 .rule-target {
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 }
 
 .rule-priority {
-  color: $text-color-secondary;
+  color: var(--text-secondary);
   font-size: $font-size-xs;
 }
 
 .rule-description {
   font-size: $font-size-sm;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 }
 
 .empty-state {
@@ -516,7 +528,7 @@ function getActionColor(action: RuleAction): string {
   align-items: center;
   justify-content: center;
   padding: $spacing-xl * 2;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 
   svg {
     width: 64px;
@@ -529,7 +541,6 @@ function getActionColor(action: RuleAction): string {
   }
 }
 
-// 对话框
 .dialog-overlay {
   position: fixed;
   top: 0;
@@ -546,9 +557,10 @@ function getActionColor(action: RuleAction): string {
 .dialog {
   width: 100%;
   max-width: 500px;
-  background-color: $bg-color-light;
+  background-color: var(--bg-secondary);
   border-radius: $border-radius-lg;
-  box-shadow: $box-shadow-lg;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px rgba(22, 93, 255, 0.15);
 }
 
 .dialog-header {
@@ -556,12 +568,12 @@ function getActionColor(action: RuleAction): string {
   align-items: center;
   justify-content: space-between;
   padding: $spacing-lg;
-  border-bottom: 1px solid $border-color;
+  border-bottom: 1px solid var(--border-color);
 
   h3 {
     font-size: $font-size-lg;
     font-weight: 500;
-    color: $text-color-primary;
+    color: var(--text-primary);
   }
 }
 
@@ -573,7 +585,7 @@ function getActionColor(action: RuleAction): string {
   height: 32px;
   background-color: transparent;
   border-radius: $border-radius-base;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 
   svg {
     width: 20px;
@@ -581,8 +593,8 @@ function getActionColor(action: RuleAction): string {
   }
 
   &:hover {
-    background-color: $bg-color-lighter;
-    color: $text-color-primary;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
   }
 }
 
@@ -597,22 +609,26 @@ function getActionColor(action: RuleAction): string {
     display: block;
     margin-bottom: $spacing-xs;
     font-size: $font-size-sm;
-    color: $text-color-secondary;
+    color: var(--text-secondary);
   }
 
   input,
   select {
     width: 100%;
     padding: $spacing-sm $spacing-md;
-    background-color: $bg-color-darker;
-    border: 1px solid $border-color;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
     border-radius: $border-radius-base;
-    color: $text-color-primary;
+    color: var(--text-primary);
     font-size: $font-size-base;
 
     &:focus {
-      border-color: $primary-color;
+      border-color: var(--primary-color);
       outline: none;
+    }
+
+    &::placeholder {
+      color: var(--text-tertiary);
     }
   }
 
@@ -635,7 +651,6 @@ function getActionColor(action: RuleAction): string {
   margin-top: $spacing-lg;
 }
 
-// 响应式
 @media (max-width: $breakpoint-md) {
   .header-actions {
     flex-direction: column;

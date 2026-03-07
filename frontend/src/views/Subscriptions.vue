@@ -354,15 +354,21 @@ function getStatusColor(status: string): string {
   justify-content: space-between;
 }
 
+.page-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
   gap: $spacing-sm;
   padding: $spacing-sm $spacing-md;
-  background-color: $bg-color-light;
-  border: 1px solid $border-color;
+  background-color: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-base;
-  color: $text-color-primary;
+  color: var(--text-primary);
   font-size: $font-size-base;
   cursor: pointer;
   transition: all $transition-duration $transition-timing;
@@ -373,25 +379,26 @@ function getStatusColor(status: string): string {
   }
 
   &:hover {
-    background-color: $bg-color-lighter;
+    background-color: var(--bg-secondary);
+    border-color: var(--primary-color);
   }
 
   &.btn-primary {
-    background-color: $primary-color;
-    border-color: $primary-color;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
     color: white;
 
     &:hover {
-      background-color: lighten($primary-color, 10%);
+      background-color: #3d7eff;
     }
   }
 
   &.btn-danger {
-    color: $error-color;
-    border-color: $error-color;
+    color: var(--error-color);
+    border-color: var(--error-color);
 
     &:hover {
-      background-color: rgba($error-color, 0.1);
+      background-color: rgba(255, 71, 87, 0.1);
     }
   }
 
@@ -408,10 +415,16 @@ function getStatusColor(status: string): string {
 }
 
 .subscription-card {
-  background-color: $bg-color-light;
-  border: 1px solid $border-color;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: $border-radius-lg;
   overflow: hidden;
+  transition: all $transition-duration $transition-timing;
+
+  &:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(22, 93, 255, 0.15);
+  }
 }
 
 .card-header {
@@ -419,7 +432,7 @@ function getStatusColor(status: string): string {
   align-items: center;
   justify-content: space-between;
   padding: $spacing-md $spacing-lg;
-  border-bottom: 1px solid $border-color;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .card-title {
@@ -430,7 +443,7 @@ function getStatusColor(status: string): string {
   h3 {
     font-size: $font-size-base;
     font-weight: 500;
-    color: $text-color-primary;
+    color: var(--text-primary);
   }
 }
 
@@ -441,23 +454,23 @@ function getStatusColor(status: string): string {
   font-weight: 500;
 
   &.success {
-    background-color: rgba($success-color, 0.1);
-    color: $success-color;
+    background-color: rgba(0, 200, 83, 0.15);
+    color: var(--success-color);
   }
 
   &.warning {
-    background-color: rgba($warning-color, 0.1);
-    color: $warning-color;
+    background-color: rgba(255, 184, 0, 0.15);
+    color: var(--warning-color);
   }
 
   &.error {
-    background-color: rgba($error-color, 0.1);
-    color: $error-color;
+    background-color: rgba(255, 71, 87, 0.15);
+    color: var(--error-color);
   }
 
   &.secondary {
-    background-color: rgba($text-color-secondary, 0.1);
-    color: $text-color-secondary;
+    background-color: rgba(139, 149, 165, 0.15);
+    color: var(--text-secondary);
   }
 }
 
@@ -476,12 +489,12 @@ function getStatusColor(status: string): string {
   padding: $spacing-xs 0;
 
   .label {
-    color: $text-color-secondary;
+    color: var(--text-secondary);
     font-size: $font-size-sm;
   }
 
   .value {
-    color: $text-color-primary;
+    color: var(--text-primary);
     font-size: $font-size-sm;
     font-weight: 500;
   }
@@ -489,12 +502,12 @@ function getStatusColor(status: string): string {
 
 .card-footer {
   padding: $spacing-sm $spacing-lg;
-  background-color: $bg-color-darker;
+  background-color: var(--bg-tertiary);
 }
 
 .url-display {
   font-size: $font-size-xs;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
   word-break: break-all;
 }
 
@@ -505,7 +518,7 @@ function getStatusColor(status: string): string {
   align-items: center;
   justify-content: center;
   padding: $spacing-xl * 2;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 
   svg {
     width: 64px;
@@ -518,7 +531,6 @@ function getStatusColor(status: string): string {
   }
 }
 
-// 对话框
 .dialog-overlay {
   position: fixed;
   top: 0;
@@ -535,9 +547,10 @@ function getStatusColor(status: string): string {
 .dialog {
   width: 100%;
   max-width: 500px;
-  background-color: $bg-color-light;
+  background-color: var(--bg-secondary);
   border-radius: $border-radius-lg;
-  box-shadow: $box-shadow-lg;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 8px 32px rgba(22, 93, 255, 0.15);
 }
 
 .dialog-header {
@@ -545,12 +558,12 @@ function getStatusColor(status: string): string {
   align-items: center;
   justify-content: space-between;
   padding: $spacing-lg;
-  border-bottom: 1px solid $border-color;
+  border-bottom: 1px solid var(--border-color);
 
   h3 {
     font-size: $font-size-lg;
     font-weight: 500;
-    color: $text-color-primary;
+    color: var(--text-primary);
   }
 }
 
@@ -562,7 +575,7 @@ function getStatusColor(status: string): string {
   height: 32px;
   background-color: transparent;
   border-radius: $border-radius-base;
-  color: $text-color-secondary;
+  color: var(--text-secondary);
 
   svg {
     width: 20px;
@@ -570,8 +583,8 @@ function getStatusColor(status: string): string {
   }
 
   &:hover {
-    background-color: $bg-color-lighter;
-    color: $text-color-primary;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
   }
 }
 
@@ -586,22 +599,26 @@ function getStatusColor(status: string): string {
     display: block;
     margin-bottom: $spacing-xs;
     font-size: $font-size-sm;
-    color: $text-color-secondary;
+    color: var(--text-secondary);
   }
 
   input,
   select {
     width: 100%;
     padding: $spacing-sm $spacing-md;
-    background-color: $bg-color-darker;
-    border: 1px solid $border-color;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
     border-radius: $border-radius-base;
-    color: $text-color-primary;
+    color: var(--text-primary);
     font-size: $font-size-base;
 
     &:focus {
-      border-color: $primary-color;
+      border-color: var(--primary-color);
       outline: none;
+    }
+
+    &::placeholder {
+      color: var(--text-tertiary);
     }
   }
 
@@ -624,7 +641,6 @@ function getStatusColor(status: string): string {
   margin-top: $spacing-lg;
 }
 
-// 响应式
 @media (max-width: $breakpoint-md) {
   .subscription-list {
     grid-template-columns: 1fr;
