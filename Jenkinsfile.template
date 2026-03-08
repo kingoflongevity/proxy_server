@@ -50,6 +50,13 @@ pipeline {
         // Jenkins Credentials ID
         HARBOR_CREDENTIAL_ID = 'Harbor'                // Harbor 凭据 ID
         KUBECONFIG_CREDENTIAL_ID = 'kubeconfig'        // kubeconfig 凭据 ID
+        
+        // Docker代理配置（解决网络超时问题）
+        DOCKER_BUILDKIT = '1'                          // 启用BuildKit
+        // 如果需要代理，取消下面的注释并配置
+        // HTTP_PROXY = 'http://your-proxy:port'
+        // HTTPS_PROXY = 'http://your-proxy:port'
+        // NO_PROXY = 'localhost,127.0.0.1'
     }
 
     stages {
