@@ -1,5 +1,7 @@
 # Proxy Server Web Manager
 
+**作者：Dong hua**
+
 [中文](#中文) | [English](#english)
 
 ---
