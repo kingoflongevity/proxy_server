@@ -122,6 +122,26 @@ func (h *SystemHandler) GetProxyMode(c *gin.Context) {
 	})
 }
 
+// SetProxyMode 设置代理模式
+func (h *SystemHandler) SetProxyMode(c *gin.Context) {
+	var req struct {
+		Mode string `json:"mode" binding:"required"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		response.BadRequest(c, "参数错误: "+err.Error())
+		return
+	}
+
+	if err := h.systemService.SetProxyMode(req.Mode); err != nil {
+		response.Error(c, 4000, err.Error())
+		return
+	}
+
+	response.Success(c, map[string]string{
+		"proxyMode": req.Mode,
+	})
+}
+
 // RestartService 重启服务
 func (h *SystemHandler) RestartService(c *gin.Context) {
 	if err := h.systemService.RestartService(); err != nil {
@@ -259,7 +279,6 @@ func (h *SystemHandler) GetLocalIPs(c *gin.Context) {
 	}
 
 	for _, iface := range interfaces {
-		// 跳过回环接口和未启用的接口
 		if iface.Flags&net.FlagLoopback != 0 || iface.Flags&net.FlagUp == 0 {
 			continue
 		}
@@ -278,14 +297,12 @@ func (h *SystemHandler) GetLocalIPs(c *gin.Context) {
 				ip = v.IP
 			}
 
-			// 只返回IPv4地址
 			if ip != nil && ip.To4() != nil && !ip.IsLoopback() {
 				ips = append(ips, ip.String())
 			}
 		}
 	}
 
-	// 如果没有找到IP，返回默认值
 	if len(ips) == 0 {
 		ips = []string{"127.0.0.1"}
 	}
@@ -297,4 +314,39 @@ func (h *SystemHandler) GetLocalIPs(c *gin.Context) {
 		"httpPort":   10809,
 		"mixedPort":  10810,
 	})
+}
+
+// EnableSystemProxy 启用系统代理
+func (h *SystemHandler) EnableSystemProxy(c *gin.Context) {
+	if err := h.systemService.EnableSystemProxy(); err != nil {
+		response.Error(c, 4000, err.Error())
+		return
+	}
+
+	response.Success(c, map[string]bool{
+		"enabled": true,
+	})
+}
+
+// DisableSystemProxy 禁用系统代理
+func (h *SystemHandler) DisableSystemProxy(c *gin.Context) {
+	if err := h.systemService.DisableSystemProxy(); err != nil {
+		response.Error(c, 4000, err.Error())
+		return
+	}
+
+	response.Success(c, map[string]bool{
+		"enabled": false,
+	})
+}
+
+// GetSystemProxyStatus 获取系统代理状态
+func (h *SystemHandler) GetSystemProxyStatus(c *gin.Context) {
+	status, err := h.systemService.GetSystemProxyStatus()
+	if err != nil {
+		response.Error(c, 4000, err.Error())
+		return
+	}
+
+	response.Success(c, status)
 }

@@ -46,6 +46,39 @@ export function getProxyMode(): Promise<{ proxyMode: string }> {
 }
 
 /**
+ * 设置代理模式
+ */
+export function setProxyMode(mode: string): Promise<{ proxyMode: string }> {
+  return request.put('/proxy/mode', { mode })
+}
+
+/**
+ * 启用系统代理
+ */
+export function enableSystemProxy(): Promise<{ enabled: boolean }> {
+  return request.post('/system-proxy/enable')
+}
+
+/**
+ * 禁用系统代理
+ */
+export function disableSystemProxy(): Promise<{ enabled: boolean }> {
+  return request.post('/system-proxy/disable')
+}
+
+/**
+ * 获取系统代理状态
+ */
+export function getSystemProxyStatus(): Promise<{
+  enabled: boolean
+  server: string
+  port: number
+  bypass: string
+}> {
+  return request.get('/system-proxy/status')
+}
+
+/**
  * 重启服务
  */
 export function restartService(): Promise<void> {

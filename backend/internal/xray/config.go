@@ -3,6 +3,7 @@ package xray
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"proxy_server/internal/model"
 )
@@ -141,22 +142,30 @@ type DNSServer struct {
 type ConfigGenerator struct {
 	localPort int
 	proxyMode string
+	rules     []*model.Rule
 }
 
 // NewConfigGenerator 创建配置生成器
 func NewConfigGenerator(localPort int) *ConfigGenerator {
 	if localPort == 0 {
-		localPort = 10808 // 默认SOCKS5端口
+		localPort = 10808
 	}
 	return &ConfigGenerator{
 		localPort: localPort,
 		proxyMode: "rule",
+		rules:     nil,
 	}
 }
 
 // SetProxyMode 设置代理模式
+// mode: "global" - 全局代理, "rule" - 规则模式, "direct" - 直连模式
 func (g *ConfigGenerator) SetProxyMode(mode string) {
 	g.proxyMode = mode
+}
+
+// SetRules 设置路由规则
+func (g *ConfigGenerator) SetRules(rules []*model.Rule) {
+	g.rules = rules
 }
 
 // GenerateConfig 为节点生成Xray配置
@@ -174,8 +183,8 @@ func (g *ConfigGenerator) GenerateConfig(node *model.Node) (*XrayConfig, error) 
 	config := &XrayConfig{
 		Log: &LogConfig{
 			Loglevel: "info",
-			Access:   "", // 空字符串表示输出到stdout
-			Error:    "", // 空字符串表示输出到stderr
+			Access:   "",
+			Error:    "",
 		},
 		API: &APIConfig{
 			Tag: "api",
@@ -193,6 +202,7 @@ func (g *ConfigGenerator) GenerateConfig(node *model.Node) (*XrayConfig, error) 
 		Outbounds: []OutboundConfig{
 			g.generateOutbound(node),
 			g.generateDirectOutbound(),
+			g.generateBlockOutbound(),
 		},
 		Routing: g.generateRouting(),
 		DNS:     g.generateDNS(),
@@ -532,21 +542,155 @@ func (g *ConfigGenerator) generateDirectOutbound() OutboundConfig {
 	}
 }
 
+// generateBlockOutbound 生成阻止出站配置
+func (g *ConfigGenerator) generateBlockOutbound() OutboundConfig {
+	return OutboundConfig{
+		Tag:      "block",
+		Protocol: "blackhole",
+		Settings: json.RawMessage(`{}`),
+	}
+}
+
 // generateRouting 生成路由配置
+// 根据代理模式生成不同的路由规则：
+// - global: 所有流量走代理
+// - rule: 根据规则决定流量走向
+// - direct: 所有流量直连
 func (g *ConfigGenerator) generateRouting() *RoutingConfig {
+	rules := []RuleConfig{
+		{
+			Type:        "field",
+			OutboundTag: "api",
+			InboundTag:  []string{"api"},
+		},
+	}
+
+	switch g.proxyMode {
+	case "global":
+		// 全局代理模式：所有流量走代理
+		rules = append(rules, RuleConfig{
+			Type:        "field",
+			OutboundTag: "proxy",
+			InboundTag:  []string{"socks-in", "http-in"},
+		})
+	case "direct":
+		// 直连模式：所有流量直连
+		rules = append(rules, RuleConfig{
+			Type:        "field",
+			OutboundTag: "direct",
+			InboundTag:  []string{"socks-in", "http-in"},
+		})
+	case "rule":
+		// 规则模式：根据规则决定流量走向
+		// 先添加用户自定义规则
+		if g.rules != nil && len(g.rules) > 0 {
+			for _, rule := range g.rules {
+				if !rule.Enabled {
+					continue
+				}
+				xrayRule := g.convertRuleToXrayRule(rule)
+				if xrayRule != nil {
+					rules = append(rules, *xrayRule)
+				}
+			}
+		}
+		// 添加默认规则：国内直连，国外走代理
+		rules = append(rules, g.generateDefaultRules()...)
+		// 最终规则：未匹配的流量走代理
+		rules = append(rules, RuleConfig{
+			Type:        "field",
+			OutboundTag: "proxy",
+			InboundTag:  []string{"socks-in", "http-in"},
+		})
+	default:
+		// 默认使用规则模式
+		rules = append(rules, RuleConfig{
+			Type:        "field",
+			OutboundTag: "proxy",
+			InboundTag:  []string{"socks-in", "http-in"},
+		})
+	}
+
 	return &RoutingConfig{
 		DomainStrategy: "IPIfNonMatch",
-		Rules: []RuleConfig{
-			{
-				Type:        "field",
-				OutboundTag: "api",
-				InboundTag:  []string{"api"},
-			},
-			{
-				Type:        "field",
-				OutboundTag: "proxy",
-				InboundTag:  []string{"socks-in", "http-in"},
-			},
+		Rules:          rules,
+	}
+}
+
+// convertRuleToXrayRule 将用户规则转换为Xray路由规则
+func (g *ConfigGenerator) convertRuleToXrayRule(rule *model.Rule) *RuleConfig {
+	if rule == nil {
+		return nil
+	}
+
+	xrayRule := &RuleConfig{
+		Type: "field",
+	}
+
+	// 设置出站
+	switch rule.Policy {
+	case model.PolicyProxy:
+		xrayRule.OutboundTag = "proxy"
+	case model.PolicyDirect:
+		xrayRule.OutboundTag = "direct"
+	case model.PolicyReject, model.PolicyBlock:
+		xrayRule.OutboundTag = "block"
+	default:
+		xrayRule.OutboundTag = "proxy"
+	}
+
+	// 根据规则类型设置匹配条件
+	switch rule.Type {
+	case model.RuleTypeDomain:
+		xrayRule.Domain = []string{"full:" + rule.Value}
+	case model.RuleTypeDomainSuffix:
+		xrayRule.Domain = []string{"geosite:" + rule.Value}
+		if !strings.HasPrefix(rule.Value, "geosite:") {
+			xrayRule.Domain = []string{rule.Value}
+		}
+	case model.RuleTypeDomainKeyword:
+		xrayRule.Domain = []string{"keyword:" + rule.Value}
+	case model.RuleTypeIP:
+		xrayRule.IP = []string{rule.Value}
+	case model.RuleTypeSrcIP:
+		xrayRule.Source = []string{rule.Value}
+	case model.RuleTypeGeoIP:
+		xrayRule.IP = []string{"geoip:" + rule.Value}
+	case model.RuleTypeGeoSite:
+		xrayRule.Domain = []string{"geosite:" + rule.Value}
+	case model.RuleTypeProcess:
+		xrayRule.Protocol = []string{rule.Value}
+	case model.RuleTypeFinal:
+		// FINAL规则不需要匹配条件，直接返回出站
+		return xrayRule
+	default:
+		return nil
+	}
+
+	return xrayRule
+}
+
+// generateDefaultRules 生成默认路由规则
+// 国内流量直连，国外流量走代理
+func (g *ConfigGenerator) generateDefaultRules() []RuleConfig {
+	return []RuleConfig{
+		// 私有网络直连
+		{
+			Type:        "field",
+			OutboundTag: "direct",
+			IP:          []string{"geoip:private"},
+		},
+		// 中国大陆IP直连
+		{
+			Type:        "field",
+			OutboundTag: "direct",
+			IP:          []string{"geoip:cn"},
+		},
+		// 中国大陆域名直连
+		{
+			Type:        "field",
+			OutboundTag: "direct",
+			Domain:      []string{"geosite:cn"},
 		},
 	}
 }

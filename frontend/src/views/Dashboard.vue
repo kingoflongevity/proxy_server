@@ -9,6 +9,7 @@ const settingsStore = useSettingsStore()
 
 const coreVersion = ref<string>('')
 const coreInstalled = ref<boolean>(false)
+const systemProxyEnabled = ref<boolean>(false)
 
 interface CoreInfo {
   version: string
@@ -30,6 +31,15 @@ async function fetchCoreInfo() {
   }
 }
 
+async function fetchSystemProxyStatus() {
+  try {
+    const status = await settingsStore.fetchSystemProxyStatus()
+    systemProxyEnabled.value = status?.enabled || false
+  } catch (error) {
+    console.error('获取系统代理状态失败:', error)
+  }
+}
+
 onMounted(async () => {
   try {
     await Promise.all([
@@ -38,6 +48,7 @@ onMounted(async () => {
       settingsStore.fetchConnectionStatus(),
       nodeStore.fetchCurrentNode(),
       fetchCoreInfo(),
+      fetchSystemProxyStatus(),
     ])
   } catch (error) {
     console.error('加载数据失败:', error)
@@ -55,6 +66,30 @@ const currentNodeName = computed(() => {
 const currentNodeLatency = computed(() => {
   return nodeStore.currentNode?.latency || 0
 })
+
+const proxyMode = computed(() => settingsStore.proxyMode)
+
+async function handleProxyModeChange(mode: string) {
+  try {
+    await settingsStore.setProxyMode(mode)
+  } catch (error) {
+    console.error('切换代理模式失败:', error)
+  }
+}
+
+async function handleSystemProxyToggle() {
+  try {
+    if (systemProxyEnabled.value) {
+      await settingsStore.disableSystemProxy()
+      systemProxyEnabled.value = false
+    } else {
+      await settingsStore.enableSystemProxy()
+      systemProxyEnabled.value = true
+    }
+  } catch (error) {
+    console.error('切换系统代理失败:', error)
+  }
+}
 
 /**
  * 格式化速度
@@ -247,6 +282,75 @@ function formatTraffic(bytes: number): string {
           <span class="info-value">{{ settingsStore.connectionStatus.connectionCount || 0 }}</span>
         </div>
       </div>
+    </div>
+
+    <!-- 代理模式切换 -->
+    <div class="section">
+      <h3 class="section-title">代理模式</h3>
+      <div class="proxy-mode-switcher">
+        <button
+          class="mode-btn"
+          :class="{ active: proxyMode === 'global' }"
+          @click="handleProxyModeChange('global')"
+          :disabled="!isConnected"
+        >
+          <svg viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+            <path d="M2 12h20" stroke="currentColor" stroke-width="2" />
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" stroke="currentColor" stroke-width="2" />
+          </svg>
+          <span>全局模式</span>
+          <span class="mode-desc">所有流量通过代理</span>
+        </button>
+        <button
+          class="mode-btn"
+          :class="{ active: proxyMode === 'rule' }"
+          @click="handleProxyModeChange('rule')"
+          :disabled="!isConnected"
+        >
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M9 12h6M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+          </svg>
+          <span>规则模式</span>
+          <span class="mode-desc">根据规则分流</span>
+        </button>
+        <button
+          class="mode-btn"
+          :class="{ active: proxyMode === 'direct' }"
+          @click="handleProxyModeChange('direct')"
+          :disabled="!isConnected"
+        >
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>直连模式</span>
+          <span class="mode-desc">所有流量直连</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 系统代理设置 -->
+    <div class="section">
+      <h3 class="section-title">系统代理</h3>
+      <div class="system-proxy-control">
+        <div class="proxy-status">
+          <span class="status-label">系统代理状态</span>
+          <span class="status-value" :class="{ enabled: systemProxyEnabled }">
+            {{ systemProxyEnabled ? '已启用' : '已禁用' }}
+          </span>
+        </div>
+        <button
+          class="toggle-btn"
+          :class="{ active: systemProxyEnabled }"
+          @click="handleSystemProxyToggle"
+        >
+          <span class="toggle-slider"></span>
+        </button>
+      </div>
+      <p class="proxy-hint">
+        启用系统代理后，服务器的所有HTTP/HTTPS流量将通过代理转发
+      </p>
     </div>
 
     <!-- 快速操作 -->

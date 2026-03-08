@@ -97,7 +97,7 @@ func main() {
 
 	// 初始化Service层
 	subService := service.NewSubscriptionService(subRepo, nodeRepo)
-	nodeService := service.NewNodeService(nodeRepo, systemRepo)
+	nodeService := service.NewNodeService(nodeRepo, systemRepo, ruleRepo)
 	ruleService := service.NewRuleService(ruleRepo)
 	systemService := service.NewSystemService(systemRepo, nodeService)
 	logService := service.NewLogServiceWithDataDir(dataDir)

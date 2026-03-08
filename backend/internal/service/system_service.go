@@ -1,13 +1,18 @@
 package service
 
 import (
+	"fmt"
 	"runtime"
 	"time"
 
 	"proxy_server/internal/model"
 	"proxy_server/internal/repository"
 	"proxy_server/pkg/logger"
+	"proxy_server/pkg/sysproxy"
 )
+
+// currentProxyMode 当前代理模式（全局变量，由node_service设置）
+var currentProxyMode = "rule"
 
 // SystemService 系统服务接口
 type SystemService interface {
@@ -24,6 +29,10 @@ type SystemService interface {
 	ImportConfig(config string) error
 	ClearCache() error
 	GetProxyMode() string
+	SetProxyMode(mode string) error
+	EnableSystemProxy() error
+	DisableSystemProxy() error
+	GetSystemProxyStatus() (*sysproxy.ProxyConfig, error)
 }
 
 // 获取当前代理模式
@@ -33,22 +42,22 @@ func GetProxyMode() string {
 
 // systemService 系统服务实现
 type systemService struct {
-	systemRepo  repository.SystemRepository
-	nodeService NodeService
-	startTime   time.Time
-	version     string
+	systemRepo       repository.SystemRepository
+	nodeService      NodeService
+	startTime        time.Time
+	version          string
+	proxyManager     *sysproxy.SystemProxyManager
 }
-
-var currentProxyMode = "rule"
 
 // NewSystemService 创建系统服务
 func NewSystemService(systemRepo repository.SystemRepository, nodeService NodeService) SystemService {
 	currentProxyMode = "rule"
 	return &systemService{
-		systemRepo:  systemRepo,
-		nodeService: nodeService,
-		startTime:   time.Now(),
-		version:     "1.0.0",
+		systemRepo:   systemRepo,
+		nodeService:  nodeService,
+		startTime:    time.Now(),
+		version:      "1.0.0",
+		proxyManager: sysproxy.NewSystemProxyManager(),
 	}
 }
 
@@ -208,6 +217,29 @@ func (s *systemService) GetProxyMode() string {
 	return currentProxyMode
 }
 
+// SetProxyMode 设置代理模式
+func (s *systemService) SetProxyMode(mode string) error {
+	if mode != "global" && mode != "rule" && mode != "direct" {
+		return fmt.Errorf("无效的代理模式: %s", mode)
+	}
+
+	oldMode := currentProxyMode
+	currentProxyMode = mode
+
+	settings, err := s.systemRepo.GetSettings()
+	if err != nil {
+		return err
+	}
+	settings.ProxyMode = mode
+	if err := s.systemRepo.SaveSettings(settings); err != nil {
+		currentProxyMode = oldMode
+		return err
+	}
+
+	logger.Info("代理模式已切换为: %s", mode)
+	return nil
+}
+
 // RestartService 重启服务
 func (s *systemService) RestartService() error {
 	logger.Info("重启服务请求")
@@ -242,4 +274,46 @@ func (s *systemService) ImportConfig(config string) error {
 func (s *systemService) ClearCache() error {
 	logger.Info("清除缓存请求")
 	return nil
+}
+
+// EnableSystemProxy 启用系统代理
+func (s *systemService) EnableSystemProxy() error {
+	settings, err := s.systemRepo.GetSettings()
+	if err != nil {
+		return err
+	}
+
+	httpPort := settings.HttpPort
+	if httpPort == 0 {
+		httpPort = 10809
+	}
+
+	bindAddress := settings.BindAddress
+	if bindAddress == "" || bindAddress == "0.0.0.0" {
+		bindAddress = "127.0.0.1"
+	}
+
+	if err := s.proxyManager.EnableSystemProxy(bindAddress, httpPort); err != nil {
+		logger.Error("启用系统代理失败: %v", err)
+		return err
+	}
+
+	logger.Info("系统代理已启用: %s:%d", bindAddress, httpPort)
+	return nil
+}
+
+// DisableSystemProxy 禁用系统代理
+func (s *systemService) DisableSystemProxy() error {
+	if err := s.proxyManager.DisableSystemProxy(); err != nil {
+		logger.Error("禁用系统代理失败: %v", err)
+		return err
+	}
+
+	logger.Info("系统代理已禁用")
+	return nil
+}
+
+// GetSystemProxyStatus 获取系统代理状态
+func (s *systemService) GetSystemProxyStatus() (*sysproxy.ProxyConfig, error) {
+	return s.proxyManager.GetCurrentProxy()
 }

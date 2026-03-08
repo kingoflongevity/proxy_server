@@ -33,7 +33,8 @@ type ProcessManager struct {
 	logChan     chan string
 	statsClient *StatsClient
 	localPort   int
-	// 流量统计
+	proxyMode   string
+	rules       []*model.Rule
 	lastUpload   int64
 	lastDownload int64
 	lastTime     time.Time
@@ -55,10 +56,12 @@ func NewProcessManager(xrayPath string) *ProcessManager {
 // 参数：
 //   - node: 要连接的节点
 //   - localPort: 本地SOCKS5端口
+//   - proxyMode: 代理模式 (global/rule/direct)
+//   - rules: 路由规则列表
 //
 // 返回：
 //   - error: 错误信息
-func (pm *ProcessManager) Start(node *model.Node, localPort int) error {
+func (pm *ProcessManager) Start(node *model.Node, localPort int, proxyMode string, rules []*model.Rule) error {
 	pm.mu.Lock()
 	defer pm.mu.Unlock()
 
@@ -67,6 +70,11 @@ func (pm *ProcessManager) Start(node *model.Node, localPort int) error {
 	}
 
 	generator := NewConfigGenerator(localPort)
+	generator.SetProxyMode(proxyMode)
+	if rules != nil && len(rules) > 0 {
+		generator.SetRules(rules)
+	}
+
 	config, err := generator.GenerateConfig(node)
 	if err != nil {
 		return fmt.Errorf("生成配置失败: %w", err)
@@ -84,6 +92,8 @@ func (pm *ProcessManager) Start(node *model.Node, localPort int) error {
 
 	pm.configPath = configPath
 	pm.localPort = localPort
+	pm.proxyMode = proxyMode
+	pm.rules = rules
 
 	ctx, cancel := context.WithCancel(context.Background())
 	pm.cancel = cancel
@@ -108,7 +118,6 @@ func (pm *ProcessManager) Start(node *model.Node, localPort int) error {
 	pm.currentNode = node
 	pm.lastTime = time.Now()
 
-	// 初始化统计客户端（API端口为localPort+2）
 	pm.statsClient = NewStatsClient(localPort + 2)
 
 	go pm.readOutput(stdout, "stdout")
@@ -116,7 +125,7 @@ func (pm *ProcessManager) Start(node *model.Node, localPort int) error {
 
 	go pm.wait()
 
-	logger.Info("Xray进程已启动，节点: %s, 本地端口: %d", node.Name, localPort)
+	logger.Info("Xray进程已启动，节点: %s, 本地端口: %d, 代理模式: %s", node.Name, localPort, proxyMode)
 	return nil
 }
 
@@ -166,14 +175,14 @@ func (pm *ProcessManager) Stop() error {
 }
 
 // Restart 重启Xray进程
-func (pm *ProcessManager) Restart(node *model.Node, localPort int) error {
+func (pm *ProcessManager) Restart(node *model.Node, localPort int, proxyMode string, rules []*model.Rule) error {
 	if err := pm.Stop(); err != nil {
 		return err
 	}
 
 	time.Sleep(100 * time.Millisecond)
 
-	return pm.Start(node, localPort)
+	return pm.Start(node, localPort, proxyMode, rules)
 }
 
 // IsRunning 检查进程是否运行中
@@ -188,6 +197,23 @@ func (pm *ProcessManager) GetCurrentNode() *model.Node {
 	pm.mu.RLock()
 	defer pm.mu.RUnlock()
 	return pm.currentNode
+}
+
+// GetProxyMode 获取当前代理模式
+func (pm *ProcessManager) GetProxyMode() string {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+	if pm.proxyMode == "" {
+		return "rule"
+	}
+	return pm.proxyMode
+}
+
+// GetRules 获取当前路由规则
+func (pm *ProcessManager) GetRules() []*model.Rule {
+	pm.mu.RLock()
+	defer pm.mu.RUnlock()
+	return pm.rules
 }
 
 // GetLogs 获取日志通道
@@ -279,13 +305,17 @@ func (pm *ProcessManager) TestConnection(node *model.Node, timeout int) (int, er
 	pm.mu.Lock()
 	wasRunning := pm.running
 	var oldNode *model.Node
+	var oldProxyMode string
+	var oldRules []*model.Rule
 	if wasRunning {
 		oldNode = pm.currentNode
+		oldProxyMode = pm.proxyMode
+		oldRules = pm.rules
 	}
 	pm.mu.Unlock()
 
 	testPort := 20808
-	if err := pm.Start(node, testPort); err != nil {
+	if err := pm.Start(node, testPort, "global", nil); err != nil {
 		return 0, fmt.Errorf("启动测试失败: %w", err)
 	}
 
@@ -316,7 +346,7 @@ func (pm *ProcessManager) TestConnection(node *model.Node, timeout int) (int, er
 	pm.Stop()
 
 	if wasRunning && oldNode != nil {
-		pm.Start(oldNode, 10808)
+		pm.Start(oldNode, 10808, oldProxyMode, oldRules)
 	}
 
 	return latency, nil

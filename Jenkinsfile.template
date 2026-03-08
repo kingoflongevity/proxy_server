@@ -1,0 +1,306 @@
+// ========================================
+// Jenkins Pipeline Template for Node.js + Docker + Kubernetes
+// ========================================
+// 
+// 使用说明：
+// 1. 复制此文件到项目根目录，重命名为 Jenkinsfile
+// 2. 修改 CONFIGURATION 部分的配置项
+// 3. 在 Jenkins 中配置以下 Credentials：
+//    - Harbor: Docker 仓库用户名密码
+//    - kubeconfig: Kubernetes 配置文件
+// 4. 根据项目需要调整 Deployment 配置
+//
+// 功能特性：
+// - Docker 镜像构建与推送
+// - Harbor ImagePullSecret 自动创建
+// - Kubernetes 部署（支持滚动更新）
+// - 健康检查
+// ========================================
+
+pipeline {
+    agent any
+
+    // ========================================
+    // PIPELINE OPTIONS
+    // ========================================
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))  // 保留最近 10 次构建
+        timeout(time: 30, unit: 'MINUTES')              // 构建超时时间
+        timestamps()                                     // 显示时间戳
+    }
+
+    // ========================================
+    // CONFIGURATION - 请根据项目修改以下配置
+    // ========================================
+    environment {
+        // Docker 仓库配置
+        DOCKER_REGISTRY = '192.168.1.8:8083'           // Harbor 仓库地址
+        IMAGE_NAME = 'your-project/your-service'       // 镜像名称（项目/服务）
+        IMAGE_FULL = "${DOCKER_REGISTRY}/${IMAGE_NAME}"
+        
+        // 构建配置
+        TAG = "${env.BUILD_NUMBER}"                    // 使用构建号作为标签
+        
+        // Kubernetes 配置
+        K8S_NAMESPACE = 'default'                      // K8s 命名空间
+        K8S_APP_NAME = 'your-app-name'                 // K8s 应用名称
+        K8S_DEPLOYMENT_NAME = 'your-deployment'        // K8s Deployment 名称
+        CONTAINER_PORT = '3000'                        // 容器端口
+        
+        // Jenkins Credentials ID
+        HARBOR_CREDENTIAL_ID = 'Harbor'                // Harbor 凭据 ID
+        KUBECONFIG_CREDENTIAL_ID = 'kubeconfig'        // kubeconfig 凭据 ID
+    }
+
+    stages {
+        // ========================================
+        // Stage 1: Checkout
+        // ========================================
+        stage('Checkout') {
+            steps {
+                checkout scm
+                echo "Checkout completed: ${env.GIT_COMMIT}"
+            }
+        }
+
+        // ========================================
+        // Stage 2: Build Docker Image
+        // ========================================
+        stage('Build Docker Image') {
+            steps {
+                sh """
+                    echo "Building Docker image..."
+                    cd $WORKSPACE/backend
+                    docker build -t ${IMAGE_NAME}:${TAG} .
+                    docker build -t ${IMAGE_NAME}:latest .
+                    echo "Docker image built: ${IMAGE_NAME}:${TAG}"
+                """
+            }
+        }
+
+        // ========================================
+        // Stage 3: Push to Harbor
+        // ========================================
+        stage('Push to Harbor') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: "${HARBOR_CREDENTIAL_ID}",
+                    usernameVariable: 'HARBOR_USER',
+                    passwordVariable: 'HARBOR_PASS'
+                )]) {
+                    sh """
+                        echo "Logging in to Harbor..."
+                        echo "${HARBOR_PASS}" | docker login ${DOCKER_REGISTRY} -u ${HARBOR_USER} --password-stdin
+                        
+                        echo "Tagging and pushing images..."
+                        docker tag ${IMAGE_NAME}:${TAG} ${IMAGE_FULL}:${TAG}
+                        docker tag ${IMAGE_NAME}:latest ${IMAGE_FULL}:latest
+                        docker push ${IMAGE_FULL}:${TAG}
+                        docker push ${IMAGE_FULL}:latest
+                        
+                        echo "Images pushed successfully"
+                    """
+                }
+            }
+        }
+
+        // ========================================
+        // Stage 4: Create ImagePullSecret
+        // ========================================
+        stage('Create ImagePullSecret') {
+            steps {
+                withCredentials([file(
+                    credentialsId: "${KUBECONFIG_CREDENTIAL_ID}",
+                    variable: 'KUBECONFIG'
+                )]) {
+                    withCredentials([usernamePassword(
+                        credentialsId: "${HARBOR_CREDENTIAL_ID}",
+                        usernameVariable: 'HARBOR_USER',
+                        passwordVariable: 'HARBOR_PASS'
+                    )]) {
+                        sh """
+                            export KUBECONFIG=\$KUBECONFIG
+                            
+                            echo "Creating Harbor ImagePullSecret..."
+                            kubectl delete secret harbor-reg -n ${K8S_NAMESPACE} --ignore-not-found=true
+                            kubectl create secret docker-registry harbor-reg \\
+                              --docker-server=${DOCKER_REGISTRY} \\
+                              --docker-username=\${HARBOR_USER} \\
+                              --docker-password=\${HARBOR_PASS} \\
+                              --docker-email=admin@example.com \\
+                              -n ${K8S_NAMESPACE}
+                            
+                            echo "ImagePullSecret created successfully"
+                        """
+                    }
+                }
+            }
+        }
+
+        // ========================================
+        // Stage 5: Clean Old Resources
+        // ========================================
+        stage('Clean Old Resources') {
+            steps {
+                withCredentials([file(
+                    credentialsId: "${KUBECONFIG_CREDENTIAL_ID}",
+                    variable: 'KUBECONFIG'
+                )]) {
+                    sh """
+                        export KUBECONFIG=\$KUBECONFIG
+                        
+                        echo "Deleting old resources..."
+                        kubectl delete deployment ${K8S_DEPLOYMENT_NAME} -n ${K8S_NAMESPACE} --ignore-not-found=true --force --grace-period=0
+                        kubectl delete service ${K8S_DEPLOYMENT_NAME} -n ${K8S_NAMESPACE} --ignore-not-found=true
+                        
+                        echo "Waiting for resources to be deleted..."
+                        sleep 5
+                    """
+                }
+            }
+        }
+
+        // ========================================
+        // Stage 6: Deploy to Kubernetes
+        // ========================================
+        stage('Deploy to K8s') {
+            steps {
+                withCredentials([file(
+                    credentialsId: "${KUBECONFIG_CREDENTIAL_ID}",
+                    variable: 'KUBECONFIG'
+                )]) {
+                    sh """
+                        export KUBECONFIG=\$KUBECONFIG
+                        
+                        echo "Creating new resources..."
+                        kubectl apply -f - <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${K8S_DEPLOYMENT_NAME}
+  namespace: ${K8S_NAMESPACE}
+  labels:
+    app: ${K8S_APP_NAME}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${K8S_APP_NAME}
+  template:
+    metadata:
+      labels:
+        app: ${K8S_APP_NAME}
+    spec:
+      imagePullSecrets:
+      - name: harbor-reg
+      containers:
+      - name: ${K8S_APP_NAME}
+        image: ${IMAGE_FULL}:${TAG}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: ${CONTAINER_PORT}
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "${CONTAINER_PORT}"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: ${CONTAINER_PORT}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: ${CONTAINER_PORT}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${K8S_DEPLOYMENT_NAME}
+  namespace: ${K8S_NAMESPACE}
+spec:
+  selector:
+    app: ${K8S_APP_NAME}
+  ports:
+  - port: 80
+    targetPort: ${CONTAINER_PORT}
+    protocol: TCP
+    name: http
+  type: ClusterIP
+EOF
+
+                        echo "Waiting for deployment to complete..."
+                        kubectl rollout status deployment/${K8S_DEPLOYMENT_NAME} -n ${K8S_NAMESPACE} --timeout=300s
+                    """
+                }
+            }
+        }
+
+        // ========================================
+        // Stage 7: Health Check
+        // ========================================
+        stage('Health Check') {
+            steps {
+                withCredentials([file(
+                    credentialsId: "${KUBECONFIG_CREDENTIAL_ID}",
+                    variable: 'KUBECONFIG'
+                )]) {
+                    sh """
+                        export KUBECONFIG=\$KUBECONFIG
+                        
+                        echo "Checking pod status..."
+                        for i in {1..30}; do
+                            POD_STATUS=\$(kubectl get pods -n ${K8S_NAMESPACE} -l app=${K8S_APP_NAME} -o jsonpath="{.items[0].status.phase}" 2>/dev/null)
+                            if [ "\$POD_STATUS" = "Running" ]; then
+                                echo "Pod is running"
+                                exit 0
+                            fi
+                            echo "Waiting for Pod... (\$i/30), status: \$POD_STATUS"
+                            sleep 2
+                        done
+                        
+                        echo "Health check timeout"
+                        exit 1
+                    """
+                }
+            }
+        }
+    }
+
+    // ========================================
+    // POST ACTIONS
+    // ========================================
+    post {
+        success {
+            echo """
+            ========================================
+            BUILD SUCCESS!
+            ========================================
+            Image: ${IMAGE_FULL}:${TAG}
+            Namespace: ${K8S_NAMESPACE}
+            Deployment: ${K8S_DEPLOYMENT_NAME}
+            ========================================
+            """
+        }
+        failure {
+            echo """
+            ========================================
+            BUILD FAILED!
+            ========================================
+            Please check the logs for details.
+            ========================================
+            """
+        }
+    }
+}

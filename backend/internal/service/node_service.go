@@ -27,25 +27,28 @@ type NodeService interface {
 	GetCurrentNode() *model.Node
 	GetStats(id string) (map[string]interface{}, error)
 	GetTraffic() *xray.TrafficInfo
+	GetCurrentProxyMode() string
+	SetProxyMode(mode string) error
 }
 
 // nodeService 节点服务实现
 type nodeService struct {
-	nodeRepo       repository.NodeRepository
-	systemRepo     repository.SystemRepository
+	nodeRepo    repository.NodeRepository
+	systemRepo  repository.SystemRepository
+	ruleRepo    repository.RuleRepository
 	processManager *xray.ProcessManager
-	currentNode    *model.Node
+	currentNode *model.Node
 }
 
 // NewNodeService 创建节点服务
-func NewNodeService(nodeRepo repository.NodeRepository, systemRepo repository.SystemRepository) NodeService {
-	// 获取xray内核路径
+func NewNodeService(nodeRepo repository.NodeRepository, systemRepo repository.SystemRepository, ruleRepo repository.RuleRepository) NodeService {
 	coreManager := xray.NewCoreManager()
 	xrayPath := coreManager.GetCorePath()
 
 	return &nodeService{
 		nodeRepo:       nodeRepo,
 		systemRepo:     systemRepo,
+		ruleRepo:       ruleRepo,
 		processManager: xray.NewProcessManager(xrayPath),
 	}
 }
@@ -222,7 +225,10 @@ func (s *nodeService) Connect(nodeID string) error {
 		s.processManager.Stop()
 	}
 
-	if err := s.processManager.Start(node, 10808); err != nil {
+	proxyMode := currentProxyMode
+	rules, _ := s.ruleRepo.GetAll()
+
+	if err := s.processManager.Start(node, 10808, proxyMode, rules); err != nil {
 		logger.Error("启动Xray进程失败: %v", err)
 		return errors.NewError(errors.NodeConnectFailed, err.Error())
 	}
@@ -234,9 +240,10 @@ func (s *nodeService) Connect(nodeID string) error {
 	status, _ := s.systemRepo.GetStatus()
 	status.Connected = true
 	status.CurrentNode = node
+	status.Mode = proxyMode
 	s.systemRepo.SaveStatus(status)
 
-	logger.Info("连接节点成功: %s (SOCKS5: 0.0.0.0:10808, HTTP: 0.0.0.0:10809)", node.Name)
+	logger.Info("连接节点成功: %s (SOCKS5: 0.0.0.0:10808, HTTP: 0.0.0.0:10809), 代理模式: %s", node.Name, proxyMode)
 	return nil
 }
 
@@ -277,7 +284,6 @@ func (s *nodeService) GetCurrentNode() *model.Node {
 
 // Select 选择节点并启动代理连接
 func (s *nodeService) Select(id string) error {
-	// 先断开当前连接
 	if s.processManager.IsRunning() {
 		s.processManager.Stop()
 		if s.currentNode != nil {
@@ -291,8 +297,10 @@ func (s *nodeService) Select(id string) error {
 		return err
 	}
 
-	// 启动代理连接
-	if err := s.processManager.Start(node, 10808); err != nil {
+	proxyMode := currentProxyMode
+	rules, _ := s.ruleRepo.GetAll()
+
+	if err := s.processManager.Start(node, 10808, proxyMode, rules); err != nil {
 		logger.Error("启动Xray进程失败: %v", err)
 		return errors.NewError(errors.NodeConnectFailed, err.Error())
 	}
@@ -304,9 +312,10 @@ func (s *nodeService) Select(id string) error {
 	status, _ := s.systemRepo.GetStatus()
 	status.Connected = true
 	status.CurrentNode = node
+	status.Mode = proxyMode
 	s.systemRepo.SaveStatus(status)
 
-	logger.Info("选择并连接节点成功: %s (SOCKS5: 0.0.0.0:10808, HTTP: 0.0.0.0:10809)", node.Name)
+	logger.Info("选择并连接节点成功: %s (SOCKS5: 0.0.0.0:10808, HTTP: 0.0.0.0:10809), 代理模式: %s", node.Name, proxyMode)
 	return nil
 }
 
@@ -360,4 +369,39 @@ func (s *nodeService) TestAll() ([]map[string]interface{}, error) {
 	}
 
 	return s.TestBatch(ids)
+}
+
+// GetCurrentProxyMode 获取当前代理模式
+func (s *nodeService) GetCurrentProxyMode() string {
+	return currentProxyMode
+}
+
+// SetProxyMode 设置代理模式
+// 如果当前有连接，会重启Xray进程以应用新模式
+func (s *nodeService) SetProxyMode(mode string) error {
+	if mode != "global" && mode != "rule" && mode != "direct" {
+		return fmt.Errorf("无效的代理模式: %s", mode)
+	}
+
+	oldMode := currentProxyMode
+	currentProxyMode = mode
+
+	// 如果当前有连接，需要重启以应用新模式
+	if s.processManager.IsRunning() {
+		node := s.processManager.GetCurrentNode()
+		rules, _ := s.ruleRepo.GetAll()
+
+		if err := s.processManager.Restart(node, 10808, mode, rules); err != nil {
+			currentProxyMode = oldMode
+			logger.Error("重启Xray进程失败: %v", err)
+			return err
+		}
+
+		status, _ := s.systemRepo.GetStatus()
+		status.Mode = mode
+		s.systemRepo.SaveStatus(status)
+	}
+
+	logger.Info("代理模式已切换为: %s", mode)
+	return nil
 }

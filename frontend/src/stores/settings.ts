@@ -280,6 +280,56 @@ export const useSettingsStore = defineStore('settings', () => {
   }
 
   /**
+   * 设置代理模式（直接调用API）
+   */
+  async function setProxyMode(mode: string) {
+    try {
+      const result = await settingsApi.setProxyMode(mode)
+      settings.value.proxyMode = mode as any
+      return result
+    } catch (e: any) {
+      error.value = e.message || '设置代理模式失败'
+      throw e
+    }
+  }
+
+  /**
+   * 启用系统代理
+   */
+  async function enableSystemProxy() {
+    try {
+      return await settingsApi.enableSystemProxy()
+    } catch (e: any) {
+      error.value = e.message || '启用系统代理失败'
+      throw e
+    }
+  }
+
+  /**
+   * 禁用系统代理
+   */
+  async function disableSystemProxy() {
+    try {
+      return await settingsApi.disableSystemProxy()
+    } catch (e: any) {
+      error.value = e.message || '禁用系统代理失败'
+      throw e
+    }
+  }
+
+  /**
+   * 获取系统代理状态
+   */
+  async function fetchSystemProxyStatus() {
+    try {
+      return await settingsApi.getSystemProxyStatus()
+    } catch (e: any) {
+      console.error('获取系统代理状态失败:', e)
+      throw e
+    }
+  }
+
+  /**
    * 重启服务
    */
   async function restartService() {
@@ -398,6 +448,10 @@ export const useSettingsStore = defineStore('settings', () => {
     toggleTheme,
     toggleLanguage,
     toggleProxyMode,
+    setProxyMode,
+    enableSystemProxy,
+    disableSystemProxy,
+    fetchSystemProxyStatus,
     restartService,
     exportConfig,
     importConfig,
