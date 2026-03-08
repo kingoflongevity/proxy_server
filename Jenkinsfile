@@ -25,7 +25,7 @@ pipeline {
     environment {
         // Docker 仓库配置
         DOCKER_REGISTRY = '192.168.1.8:8083'
-        IMAGE_NAME = 'proxy-server/proxy-server'
+        IMAGE_NAME = 'proxy_server/proxy-server'
         IMAGE_FULL = "${DOCKER_REGISTRY}/${IMAGE_NAME}"
         
         // 构建配置
