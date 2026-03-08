@@ -63,6 +63,123 @@ proxy_server/
 └── docker/               # Docker配置
 ```
 
+### 页面功能介绍
+
+#### 1. 仪表盘 (Dashboard)
+
+**功能说明：**
+- 显示系统状态和连接信息
+- 实时流量统计和连接状态
+- 快速访问常用功能
+- 系统资源使用情况
+
+**主要模块：**
+- 连接状态卡片
+- 流量统计图表
+- 系统信息概览
+- 快捷操作按钮
+
+![仪表盘](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20dashboard%20interface%20for%20proxy%20server%20manager%20with%20traffic%20stats%20and%20connection%20status&image_size=landscape_16_9)
+
+#### 2. 订阅管理 (Subscriptions)
+
+**功能说明：**
+- 添加、编辑、删除订阅链接
+- 手动或自动刷新订阅
+- 查看订阅节点数量和状态
+- 支持多种订阅格式
+
+**操作功能：**
+- 订阅链接管理
+- 定时自动刷新
+- 节点批量测试
+- 订阅分组管理
+
+![订阅管理](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=subscription%20management%20interface%20with%20add%20subscription%20form%20and%20subscription%20list&image_size=landscape_16_9)
+
+#### 3. 节点列表 (Nodes)
+
+**功能说明：**
+- 展示所有代理节点
+- 支持按名称、延迟、类型筛选
+- 节点延迟测试
+- 一键连接到节点
+
+**节点信息：**
+- 节点名称和类型
+- 延迟测试结果
+- 流量使用情况
+- 连接状态
+
+![节点列表](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=proxy%20nodes%20list%20interface%20with%20sorting%20and%20filtering%20options&image_size=landscape_16_9)
+
+#### 4. 集群管理 (Cluster)
+
+**功能说明：**
+- 服务器集群管理
+- 代理部署和监控
+- 负载均衡配置
+- 集群状态查看
+
+**管理功能：**
+- 服务器添加和删除
+- 批量部署代理
+- 集群健康检查
+- 资源使用监控
+
+![集群管理](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cluster%20management%20interface%20with%20server%20nodes%20and%20health%20status&image_size=landscape_16_9)
+
+#### 5. 规则配置 (Rules)
+
+**功能说明：**
+- 自定义代理规则
+- 支持多种规则类型
+- 规则优先级调整
+- 规则集管理
+
+**规则类型：**
+- DOMAIN - 域名规则
+- IP-CIDR - IP地址规则
+- GEOIP - 地理位置规则
+- PROCESS-NAME - 进程名称规则
+
+![规则配置](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=proxy%20rules%20configuration%20interface%20with%20rule%20types%20and%20priorities&image_size=landscape_16_9)
+
+#### 6. 系统设置 (Settings)
+
+**功能说明：**
+- 代理模式配置
+- 端口设置
+- 主题和语言设置
+- 高级选项配置
+
+**设置项：**
+- 代理模式（全局/规则/直连）
+- 本地端口配置
+- 主题切换（深色/浅色）
+- 语言设置
+- Xray高级配置
+
+![系统设置](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=system%20settings%20interface%20with%20proxy%20mode%20configuration%20and%20theme%20settings&image_size=landscape_16_9)
+
+#### 7. 流量日志 (Logs)
+
+**功能说明：**
+- 实时流量日志
+- 请求详情记录
+- 日志筛选和搜索
+- 流量统计分析
+
+**日志内容：**
+- 时间戳
+- 客户端IP和端口
+- 请求方法和路径
+- 响应状态码
+- 响应时间
+- 流量大小
+
+![流量日志](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traffic%20logs%20interface%20with%20request%20details%20and%20filtering%20options&image_size=landscape_16_9)
+
 ### 快速开始
 
 #### 本地开发
@@ -190,6 +307,123 @@ proxy_server/
 │       └── views/         # Page views
 └── docker/               # Docker configuration
 ```
+
+### Page Features
+
+#### 1. Dashboard
+
+**Features:**
+- System status and connection information
+- Real-time traffic statistics
+- Quick access to common functions
+- System resource usage
+
+**Main Modules:**
+- Connection status cards
+- Traffic statistics charts
+- System information overview
+- Quick action buttons
+
+![Dashboard](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20dashboard%20interface%20for%20proxy%20server%20manager%20with%20traffic%20stats%20and%20connection%20status&image_size=landscape_16_9)
+
+#### 2. Subscriptions
+
+**Features:**
+- Add, edit, delete subscription links
+- Manual or automatic refresh
+- View subscription node count and status
+- Support for multiple subscription formats
+
+**Operations:**
+- Subscription link management
+- Scheduled automatic refresh
+- Batch node testing
+- Subscription group management
+
+![Subscriptions](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=subscription%20management%20interface%20with%20add%20subscription%20form%20and%20subscription%20list&image_size=landscape_16_9)
+
+#### 3. Nodes
+
+**Features:**
+- Display all proxy nodes
+- Filter by name, latency, type
+- Node latency testing
+- One-click connection
+
+**Node Information:**
+- Node name and type
+- Latency test results
+- Traffic usage
+- Connection status
+
+![Nodes](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=proxy%20nodes%20list%20interface%20with%20sorting%20and%20filtering%20options&image_size=landscape_16_9)
+
+#### 4. Cluster
+
+**Features:**
+- Server cluster management
+- Proxy deployment and monitoring
+- Load balancing configuration
+- Cluster status viewing
+
+**Management Functions:**
+- Server add and delete
+- Batch proxy deployment
+- Cluster health check
+- Resource usage monitoring
+
+![Cluster](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cluster%20management%20interface%20with%20server%20nodes%20and%20health%20status&image_size=landscape_16_9)
+
+#### 5. Rules
+
+**Features:**
+- Custom proxy rules
+- Support for multiple rule types
+- Rule priority adjustment
+- Rule set management
+
+**Rule Types:**
+- DOMAIN - Domain rules
+- IP-CIDR - IP address rules
+- GEOIP - Geolocation rules
+- PROCESS-NAME - Process name rules
+
+![Rules](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=proxy%20rules%20configuration%20interface%20with%20rule%20types%20and%20priorities&image_size=landscape_16_9)
+
+#### 6. Settings
+
+**Features:**
+- Proxy mode configuration
+- Port settings
+- Theme and language settings
+- Advanced options configuration
+
+**Settings:**
+- Proxy mode (global/rule/direct)
+- Local port configuration
+- Theme switching (dark/light)
+- Language settings
+- Xray advanced configuration
+
+![Settings](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=system%20settings%20interface%20with%20proxy%20mode%20configuration%20and%20theme%20settings&image_size=landscape_16_9)
+
+#### 7. Logs
+
+**Features:**
+- Real-time traffic logs
+- Request detail records
+- Log filtering and search
+- Traffic statistics analysis
+
+**Log Content:**
+- Timestamp
+- Client IP and port
+- Request method and path
+- Response status code
+- Response time
+- Traffic size
+
+![Logs](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traffic%20logs%20interface%20with%20request%20details%20and%20filtering%20options&image_size=landscape_16_9)
 
 ### Quick Start
 
