@@ -79,7 +79,7 @@ proxy_server/
 - 系统信息概览
 - 快捷操作按钮
 
-![仪表盘](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20dashboard%20interface%20for%20proxy%20server%20manager%20with%20traffic%20stats%20and%20connection%20status&image_size=landscape_16_9)
+![仪表盘](screenshots/dashboard.png)
 
 #### 2. 订阅管理 (Subscriptions)
 
@@ -95,7 +95,7 @@ proxy_server/
 - 节点批量测试
 - 订阅分组管理
 
-![订阅管理](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=subscription%20management%20interface%20with%20add%20subscription%20form%20and%20subscription%20list&image_size=landscape_16_9)
+![订阅管理](screenshots/subscriptions.png)
 
 #### 3. 节点列表 (Nodes)
 
@@ -111,7 +111,7 @@ proxy_server/
 - 流量使用情况
 - 连接状态
 
-![节点列表](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=proxy%20nodes%20list%20interface%20with%20sorting%20and%20filtering%20options&image_size=landscape_16_9)
+![节点列表](screenshots/nodes.png)
 
 #### 4. 集群管理 (Cluster)
 
@@ -127,7 +127,7 @@ proxy_server/
 - 集群健康检查
 - 资源使用监控
 
-![集群管理](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cluster%20management%20interface%20with%20server%20nodes%20and%20health%20status&image_size=landscape_16_9)
+![集群管理](screenshots/cluster.png)
 
 #### 5. 规则配置 (Rules)
 
@@ -143,7 +143,7 @@ proxy_server/
 - GEOIP - 地理位置规则
 - PROCESS-NAME - 进程名称规则
 
-![规则配置](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=proxy%20rules%20configuration%20interface%20with%20rule%20types%20and%20priorities&image_size=landscape_16_9)
+![规则配置](screenshots/rules.png)
 
 #### 6. 系统设置 (Settings)
 
@@ -160,7 +160,7 @@ proxy_server/
 - 语言设置
 - Xray高级配置
 
-![系统设置](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=system%20settings%20interface%20with%20proxy%20mode%20configuration%20and%20theme%20settings&image_size=landscape_16_9)
+![系统设置](screenshots/settings.png)
 
 #### 7. 流量日志 (Logs)
 
@@ -178,7 +178,7 @@ proxy_server/
 - 响应时间
 - 流量大小
 
-![流量日志](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traffic%20logs%20interface%20with%20request%20details%20and%20filtering%20options&image_size=landscape_16_9)
+![流量日志](screenshots/logs.png)
 
 ### 快速开始
 
@@ -324,7 +324,7 @@ proxy_server/
 - System information overview
 - Quick action buttons
 
-![Dashboard](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=modern%20dashboard%20interface%20for%20proxy%20server%20manager%20with%20traffic%20stats%20and%20connection%20status&image_size=landscape_16_9)
+![Dashboard](screenshots/dashboard.png)
 
 #### 2. Subscriptions
 
@@ -340,7 +340,7 @@ proxy_server/
 - Batch node testing
 - Subscription group management
 
-![Subscriptions](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=subscription%20management%20interface%20with%20add%20subscription%20form%20and%20subscription%20list&image_size=landscape_16_9)
+![Subscriptions](screenshots/subscriptions.png)
 
 #### 3. Nodes
 
@@ -356,7 +356,7 @@ proxy_server/
 - Traffic usage
 - Connection status
 
-![Nodes](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=proxy%20nodes%20list%20interface%20with%20sorting%20and%20filtering%20options&image_size=landscape_16_9)
+![Nodes](screenshots/nodes.png)
 
 #### 4. Cluster
 
@@ -372,7 +372,7 @@ proxy_server/
 - Cluster health check
 - Resource usage monitoring
 
-![Cluster](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=cluster%20management%20interface%20with%20server%20nodes%20and%20health%20status&image_size=landscape_16_9)
+![Cluster](screenshots/cluster.png)
 
 #### 5. Rules
 
@@ -388,7 +388,7 @@ proxy_server/
 - GEOIP - Geolocation rules
 - PROCESS-NAME - Process name rules
 
-![Rules](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=proxy%20rules%20configuration%20interface%20with%20rule%20types%20and%20priorities&image_size=landscape_16_9)
+![Rules](screenshots/rules.png)
 
 #### 6. Settings
 
@@ -405,7 +405,7 @@ proxy_server/
 - Language settings
 - Xray advanced configuration
 
-![Settings](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=system%20settings%20interface%20with%20proxy%20mode%20configuration%20and%20theme%20settings&image_size=landscape_16_9)
+![Settings](screenshots/settings.png)
 
 #### 7. Logs
 
@@ -423,7 +423,7 @@ proxy_server/
 - Response time
 - Traffic size
 
-![Logs](https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=traffic%20logs%20interface%20with%20request%20details%20and%20filtering%20options&image_size=landscape_16_9)
+![Logs](screenshots/logs.png)
 
 ### Quick Start
 
