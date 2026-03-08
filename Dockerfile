@@ -1,5 +1,5 @@
 # 构建后端
-FROM golang:1.21-alpine AS backend-builder
+FROM golang:1.23-alpine AS backend-builder
 
 WORKDIR /app
 COPY backend/go.mod backend/go.sum ./
@@ -9,7 +9,7 @@ COPY backend .
 RUN CGO_ENABLED=1 GOOS=linux go build -o proxy-server .
 
 # 构建前端
-FROM node:18-alpine AS frontend-builder
+FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app
 COPY frontend/package*.json ./
